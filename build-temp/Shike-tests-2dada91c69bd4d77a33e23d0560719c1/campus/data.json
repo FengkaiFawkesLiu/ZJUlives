@@ -1,0 +1,212 @@
+{
+  "Assistant": {
+    "AutoRefresh": true,
+    "PintiaEnabled": false,
+    "Courses": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "Library": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "Pintia": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "SignLog": [],
+    "SignAttempted": [],
+    "DeviceId": "4465167c-2582-4b89-a717-4caf756de961"
+  },
+  "Version": 1,
+  "NoteSchemaVersion": 0,
+  "NoteLibraries": [
+    {
+      "Id": "default",
+      "Name": "\u6211\u7684\u7B14\u8BB0",
+      "AllowCourses": true,
+      "AllowItems": true,
+      "Positions": {}
+    }
+  ],
+  "Settings": {
+    "CourseReminder": false,
+    "CourseMinutes": 15,
+    "ExamMinutes": "1440,60",
+    "LastView": "\u4ECA\u65E5\u6982\u89C8",
+    "Year": 2026,
+    "Semester": "3",
+    "TermMonday": "2026-10-12T00:00:00+08:00",
+    "Weeks": 16,
+    "SecondHalfWeek": 9,
+    "Periods": "08:00-08:45;08:50-09:35;10:00-10:45;10:50-11:35;11:40-12:25;13:25-14:10;14:15-15:00;15:05-15:50;16:15-17:00;17:05-17:50;18:50-19:35;19:40-20:25;20:30-21:15",
+    "LastSync": null,
+    "AutoCampusRefresh": true,
+    "AutoSyncOnStartup": true,
+    "TermConfigured": false,
+    "ApplyAcademicHolidays": true,
+    "LastHolidayCheck": null,
+    "HolidayCheckStatus": "\u5185\u7F6E\uFF1A2026-09-17 \u6838\u5BF9\u7684\u6821\u672C\u90E8\u901A\u77E5"
+  },
+  "Items": [],
+  "CampusActivities": [
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3826.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Generalized Bispectrum with Applications to Testing Nonlinear Serial Dependence",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u6D2A\u6C38\u6DFC\uFF08\u4E2D\u56FD\u79D1\u5B66\u9662\u6570\u5B66\u4E0E\u7CFB\u7EDF\u79D1\u5B66\u7814\u7A76\u9662\uFF0C\u5173\u8087\u76F4\u9996\u5E2D\u7814\u7A76\u5458\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1312\u4F1A\u8BAE\u5BA4",
+      "Start": "2026-09-21T16:00:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3824.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Active Hypothesis Testing under Computational Budgets",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u590F\u5BC5\uFF08\u590D\u65E6\u5927\u5B66\uFF0C\u6559\u6388\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1312\u4F1A\u8BAE\u5BA4",
+      "Start": "2026-09-20T14:00:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3823.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Attention Seeking in Genome-wide Association Studies",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u5F20\u548C\u5E73\uFF08Yale University, Professor \uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1312\u4F1A\u8BAE\u5BA4",
+      "Start": "2026-08-24T14:00:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3821.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "\u7528U\u7EDF\u8BA1\u91CF\u63ED\u5F00\u5927\u6A21\u578B\u63A8\u7406\u7684\u795E\u79D8\u9762\u7EB1",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u53F2\u6210\u6625\uFF08LSE\uFF0CAssociate Professor\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1417\u62A5\u544A\u5385",
+      "Start": "2026-07-04T16:00:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3816.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "\u57FA\u4E8E\u56E0\u679C\u6280\u672F\u7684\u53EF\u4FE1\u533B\u7597\u51B3\u7B56\u6A21\u578B",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u5468\u6653\u534E\uFF08\u5317\u4EAC\u5927\u5B66\uFF0C\u8BB2\u5E2D\u6559\u6388\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1417\u62A5\u544A\u5385",
+      "Start": "2026-06-28T10:00:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3814.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Fiedler Sign Consistency for Hierarchical Stochastic Block Models",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1AXiaodong Li\uFF08UC Davis\uFF0CAssociate professor\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1417\u62A5\u544A\u5385",
+      "Start": "2026-06-26T15:30:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3811.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Smooth Optimization for Sparse Deep Learning via Overparameterization",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1ADavid R\u00FCgamer (LMU Munich, Associate Professor)\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1312\u4F1A\u8BAE\u5BA4",
+      "Start": "2026-06-18T10:00:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3799.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Factor Models of Matrix-Valued Time Series: Nonstationarity and Cointegration",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u674E\u5FB7\u67DC\uFF08\u6FB3\u95E8\u5927\u5B66\uFF0C\u6559\u6388\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1417\u62A5\u544A\u5385",
+      "Start": "2026-06-05T10:00:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3801.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Sparse Representation and Recovery of Sparse Signals",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u8C0C\u7A33\u56FA\uFF08\u5317\u4EAC\u5E94\u7528\u7269\u7406\u4E0E\u8BA1\u7B97\u6570\u5B66\u7814\u7A76\u6240\uFF0C\u7814\u7A76\u5458\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1312\u4F1A\u8BAE\u5BA4",
+      "Start": "2026-05-30T09:30:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3785.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Contextual Dynamic Pricing: Algorithms, Optimality, and Local Differential Privacy Constraints",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u848B\u6590\u5B87\uFF08\u590D\u65E6\u5927\u5B66\uFF0C\u526F\u6559\u6388\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1417\u62A5\u544A\u5385",
+      "Start": "2026-05-19T15:30:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3784.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Structured Heterogeneity: A Subgroup Learning Perspective",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u5468\u5CAD\uFF08\u897F\u5357\u8D22\u7ECF\u5927\u5B66\uFF0C\u6559\u6388\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1417\u62A5\u544A\u5385",
+      "Start": "2026-05-18T15:30:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3781.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Denoising Diffusions: Optimal rate of Discretisation in Wasserstein Distance",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1AArnak Dalalyan\uFF08ENSAE Paris\uFF0CProfessor\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1417\u62A5\u544A\u5385",
+      "Start": "2026-05-11T10:00:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    },
+    {
+      "Url": "https://cds.zju.edu.cn/a/jzyg/3774.html",
+      "Source": "\u6570\u636E\u79D1\u5B66\u7814\u7A76\u4E2D\u5FC3",
+      "Category": "\u8BB2\u5EA7",
+      "Title": "Tail-Aware Information-Theoretic Generalization Bounds with Applications to LLM Safety Alignment",
+      "Description": "\u4E3B\u8BB2\u4EBA\uFF1A\u5F20\u6167\u94ED\uFF08\u5317\u4EAC\u822A\u7A7A\u822A\u5929\u5927\u5B66\uFF0C\u526F\u6559\u6388\uFF09\n\u5B98\u7F51\u672A\u63D0\u4F9B\u7ED3\u675F\u65F6\u95F4\uFF1B\u52A0\u5165\u65E5\u7A0B\u65F6\u8BF7\u786E\u8BA4\u65F6\u957F\u3002",
+      "Location": "\u6D59\u6C5F\u5927\u5B66\u7D2B\u91D1\u6E2F\u6821\u533A\u884C\u653F\u697C1417\u62A5\u544A\u5385",
+      "Start": "2026-04-28T15:30:00",
+      "Published": null,
+      "Fetched": "2026-10-14T23:14:36.0446544+08:00"
+    }
+  ],
+  "CampusSources": [
+    {
+      "Name": "test",
+      "Updated": "2026-10-14T23:14:36.0452361+08:00",
+      "Status": "\u5C1A\u672A\u66F4\u65B0"
+    }
+  ],
+  "Fired": [],
+  "Alerts": []
+}

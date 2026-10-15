@@ -1,0 +1,62 @@
+{
+  "Assistant": {
+    "AutoRefresh": true,
+    "PintiaEnabled": false,
+    "Courses": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "Library": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "Pintia": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "SignLog": [],
+    "SignAttempted": [],
+    "DeviceId": "97436d17-c6ca-4b93-a5d5-2a60c82a56eb"
+  },
+  "Version": 1,
+  "NoteSchemaVersion": 0,
+  "NoteLibraries": [
+    {
+      "Id": "default",
+      "Name": "\u6211\u7684\u7B14\u8BB0",
+      "AllowCourses": true,
+      "AllowItems": true,
+      "Positions": {}
+    }
+  ],
+  "Settings": {
+    "CourseReminder": false,
+    "CourseMinutes": 15,
+    "ExamMinutes": "1440,60",
+    "LastView": "\u4ECA\u65E5\u6982\u89C8",
+    "Year": 2026,
+    "Semester": "3",
+    "TermMonday": "2026-10-12T00:00:00+08:00",
+    "Weeks": 16,
+    "SecondHalfWeek": 9,
+    "Periods": "08:00-08:45;08:50-09:35;09:50-10:35;10:40-11:25;11:30-12:15;13:15-14:00;14:05-14:50;14:55-15:40;15:55-16:40;16:45-17:30;18:30-19:15;19:20-20:05;20:10-20:55",
+    "LastSync": null,
+    "AutoCampusRefresh": true,
+    "AutoSyncOnStartup": true,
+    "TermConfigured": false,
+    "ApplyAcademicHolidays": true,
+    "LastHolidayCheck": null,
+    "HolidayCheckStatus": "\u5185\u7F6E\uFF1A2026-09-17 \u6838\u5BF9\u7684\u6821\u672C\u90E8\u901A\u77E5"
+  },
+  "Items": [],
+  "CampusActivities": [],
+  "CampusSources": [],
+  "Fired": [],
+  "Alerts": []
+}

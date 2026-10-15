@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "Yu28+lRHiwo=",
+  "success": true,
+  "projectFilePath": "E:\\浙大生活\\obsidian-work\\src\\Shike.csproj",
+  "expectedPackageFiles": [
+    "E:\\浙大生活\\obsidian-work\\temp\\.nuget\\packages\\markdig\\0.41.3\\markdig.0.41.3.nupkg.sha512",
+    "E:\\浙大生活\\obsidian-work\\temp\\.nuget\\packages\\microsoft.web.webview2\\1.0.3856.49\\microsoft.web.webview2.1.0.3856.49.nupkg.sha512",
+    "E:\\浙大生活\\obsidian-work\\temp\\.nuget\\packages\\wpfmath\\2.1.0\\wpfmath.2.1.0.nupkg.sha512",
+    "E:\\浙大生活\\obsidian-work\\temp\\.nuget\\packages\\xamlmath.shared\\2.1.0\\xamlmath.shared.2.1.0.nupkg.sha512"
+  ],
+  "logs": []
+}

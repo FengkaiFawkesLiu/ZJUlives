@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Markdig</id>
+    <version>0.41.3</version>
+    <authors>Alexandre Mutel</authors>
+    <license type="expression">BSD-2-Clause</license>
+    <licenseUrl>https://licenses.nuget.org/BSD-2-Clause</licenseUrl>
+    <icon>markdig.png</icon>
+    <readme>readme.md</readme>
+    <projectUrl>https://github.com/xoofx/markdig</projectUrl>
+    <description>A fast, powerful, CommonMark compliant, extensible Markdown processor for .NET with 20+ builtin extensions (pipetables, footnotes, definition lists... etc.)</description>
+    <releaseNotes>https://github.com/xoofx/markdig/releases/tag/0.41.3</releaseNotes>
+    <copyright>Alexandre Mutel</copyright>
+    <tags>Markdown CommonMark md html md2html</tags>
+    <repository type="git" url="https://github.com/xoofx/markdig" commit="7ff8db9016593b71f9ae17d9b2b053fbd54e9cdf" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.2">
+        <dependency id="System.Memory" version="4.6.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net8.0" />
+      <group targetFramework="net9.0" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Memory" version="4.6.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.1" />
+    </dependencies>
+  </metadata>
+</package>

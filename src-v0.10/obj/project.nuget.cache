@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "mTgnRnkwT6Q=",
+  "success": true,
+  "projectFilePath": "E:\\ZJUlives\\src-v0.10\\Shike.csproj",
+  "expectedPackageFiles": [
+    "E:\\ZJUlives\\build-temp\\.nuget\\packages\\markdig\\0.41.3\\markdig.0.41.3.nupkg.sha512",
+    "E:\\ZJUlives\\build-temp\\.nuget\\packages\\microsoft.web.webview2\\1.0.3856.49\\microsoft.web.webview2.1.0.3856.49.nupkg.sha512",
+    "E:\\ZJUlives\\build-temp\\.nuget\\packages\\wpfmath\\2.1.0\\wpfmath.2.1.0.nupkg.sha512",
+    "E:\\ZJUlives\\build-temp\\.nuget\\packages\\xamlmath.shared\\2.1.0\\xamlmath.shared.2.1.0.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>WpfMath</id>
+    <version>2.1.0</version>
+    <title>WPF-Math</title>
+    <authors>ForNeVeR</authors>
+    <license type="expression">MIT AND OFL-1.1</license>
+    <licenseUrl>https://licenses.nuget.org/MIT%20AND%20OFL-1.1</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/ForNeVeR/xaml-math</projectUrl>
+    <description>.NET library for rendering mathematical formulae using the LaTeX typsetting style, for the WPF framework.</description>
+    <releaseNotes>[Changed]
+
+- AvaloniaMath is now based on (and thus compatible with) Avalonia 11.
+
+[Fixed]
+
+- #272: Parser crash on \left{2+2\right\} (https://github.com/ForNeVeR/xaml-math/issues/272).</releaseNotes>
+    <copyright>Copyright © Alex Regueiro 2010; Copyright © WPF-Math Contributors 2023; Copyright © XAML-Math Contributors 2023</copyright>
+    <tags>latex formula wpf</tags>
+    <repository type="git" url="https://github.com/ForNeVeR/xaml-math.git" commit="d6f576345998777dcf7ad112da1add9bd7ad9674" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.2">
+        <dependency id="XamlMath.Shared" version="2.1.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net6.0-windows7.0">
+        <dependency id="XamlMath.Shared" version="2.1.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkReferences>
+      <group targetFramework="net6.0-windows7.0">
+        <frameworkReference name="Microsoft.WindowsDesktop.App.WPF" />
+      </group>
+      <group targetFramework=".NETFramework4.6.2" />
+    </frameworkReferences>
+  </metadata>
+</package>

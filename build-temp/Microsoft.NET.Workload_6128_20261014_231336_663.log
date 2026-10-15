@@ -1,0 +1,14 @@
+[2026-10-14 23:13:36.663] [000017F0] === Logging started ===
+[2026-10-14 23:13:36.668] [000017F0] Executing: "C:\Program Files\dotnet\dotnet.exe" build E:\ZJUlives\src-v0.10\Shike.csproj -c Release --nologo -o E:\ZJUlives\build-storage -p:UseSharedCompilation=false, PID: 6128, PPID: 18008
+[2026-10-14 23:13:36.668] [000017F0] IsElevated: False
+[2026-10-14 23:13:36.668] [000017F0] Is64BitProcess: True
+[2026-10-14 23:13:36.668] [000017F0] RebootPending: False
+[2026-10-14 23:13:36.668] [000017F0] ProcessorArchitecture: amd64
+[2026-10-14 23:13:36.668] [000017F0] HostArchitecture: x64
+[2026-10-14 23:13:36.668] [000017F0] SdkDirectory: 10.0.401
+[2026-10-14 23:13:36.668] [000017F0] VerifySignatures: False
+[2026-10-14 23:13:36.668] [000017F0] SDK feature band: 10.0.400
+[2026-10-14 23:13:37.044] [000017F0] Shutting down
+[2026-10-14 23:13:37.045] [000017F0] Shutdown completed.
+[2026-10-14 23:13:37.045] [000017F0] Restart required: False
+[2026-10-14 23:13:37.045] [000017F0] === Logging ended ===
