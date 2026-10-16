@@ -39,6 +39,19 @@ public sealed partial class MainWindow
         void Click(Window window, string label) => Visuals<Button>(window).First(b => b.Content is string s && s == label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         try
         {
+            if (Environment.GetCommandLineArgs().Contains("--obsidian-only")) {
+                store.Data.Items.Add(new Item { Kind="笔记", Title="导出界面测试", Note="测试正文" });
+                SwitchView("笔记与附件"); UpdateLayout();
+                Check(Visuals<Button>(this).Count(b => b.Content is string s && s == "Obsidian") == 1, "One Obsidian entry on notes page");
+                Theme.Screenshot((FrameworkElement)Content, Path.Combine(dir,"obsidian-notes.png"));
+                Modal(ShowObsidian, window => {
+                    Check(Visuals<ComboBox>(window).Single().SelectedIndex == 0,"Export defaults to current library");
+                    Click(window,"导出所选笔记库"); window.UpdateLayout();
+                    Check(Directory.GetFiles(ObsidianBridge.Vault(store),"*.md",SearchOption.AllDirectories).Length == 1,"UI exports selected library");
+                    Theme.Screenshot((FrameworkElement)window.Content,Path.Combine(dir,"obsidian-dialog.png"));
+                    window.Close();
+                }); return;
+            }
             if (Environment.GetCommandLineArgs().Contains("--floating-only")) { RunFloatingFormulaTests(dir, Check, Modal, Click); return; }
             SetFullScreen(true); UpdateLayout();
             Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);

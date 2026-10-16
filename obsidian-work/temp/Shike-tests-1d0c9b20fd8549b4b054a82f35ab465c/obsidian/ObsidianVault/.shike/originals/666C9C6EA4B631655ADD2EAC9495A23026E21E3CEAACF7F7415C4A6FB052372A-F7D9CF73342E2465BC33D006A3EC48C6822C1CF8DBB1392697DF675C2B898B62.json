@@ -1,0 +1,49 @@
+{
+  "Id": "4ab19d21acf243af9bca03baff4ec2cb",
+  "Kind": "\u7B14\u8BB0",
+  "Title": "\u540C\u540D",
+  "Start": "2026-10-15T09:00:00+08:00",
+  "End": "2026-10-15T10:00:00+08:00",
+  "Location": "",
+  "Note": "",
+  "LibraryId": "default",
+  "NoteFormat": "markdown-v1",
+  "NoteBody": "\u516C\u5F0F $x^2$\n\u6B63\u6587",
+  "NoteInk": "",
+  "NoteLinks": [
+    {
+      "Key": "note:8d61814f8a334e75a1e853aa74a27710",
+      "Label": "\u540C\u540D",
+      "Kind": "note"
+    }
+  ],
+  "Attachments": [
+    {
+      "Name": "proof.txt",
+      "File": "c67cbd6326024c1dae32e7e137a2d11d.txt"
+    }
+  ],
+  "ParentId": null,
+  "CampusUrl": null,
+  "Done": false,
+  "Cancelled": false,
+  "Repeat": "\u4E0D\u91CD\u590D",
+  "Until": "2027-02-15T00:00:00+08:00",
+  "Excluded": [],
+  "Reminders": null,
+  "AssistantKey": null,
+  "AssistantNoDue": false,
+  "AssistantRemoteDone": false,
+  "SourceKey": null,
+  "Scope": null,
+  "Original": null,
+  "LocalOverride": false,
+  "Pending": null,
+  "PendingRemoval": false,
+  "SchoolRemoved": false,
+  "SchoolSuspended": false,
+  "SchoolAdjustment": "",
+  "Teacher": "",
+  "Modified": "2026-10-15T22:27:57.5331181+08:00",
+  "HasConflict": false
+}

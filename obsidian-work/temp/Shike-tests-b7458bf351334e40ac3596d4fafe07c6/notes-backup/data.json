@@ -1,0 +1,155 @@
+{
+  "Assistant": {
+    "AutoRefresh": true,
+    "PintiaEnabled": false,
+    "Courses": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "Library": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "Pintia": {
+      "Account": "",
+      "Updated": null,
+      "Status": "\u5C1A\u672A\u8FDE\u63A5",
+      "Entries": []
+    },
+    "SignLog": [],
+    "SignAttempted": [],
+    "DeviceId": "5effb95c-478e-4d2a-bac5-a42c6dc3d24e"
+  },
+  "Version": 1,
+  "NoteSchemaVersion": 0,
+  "NoteLibraries": [
+    {
+      "Id": "default",
+      "Name": "\u6211\u7684\u7B14\u8BB0",
+      "AllowCourses": true,
+      "AllowItems": true,
+      "Positions": {
+        "note:1b9014777da64eafad6d140107d11090": {
+          "X": 420,
+          "Y": 230
+        }
+      }
+    }
+  ],
+  "Settings": {
+    "CourseReminder": false,
+    "CourseMinutes": 15,
+    "ExamMinutes": "1440,60",
+    "LastView": "\u4ECA\u65E5\u6982\u89C8",
+    "Year": 2026,
+    "Semester": "3",
+    "TermMonday": "2026-10-12T00:00:00+08:00",
+    "Weeks": 16,
+    "SecondHalfWeek": 9,
+    "Periods": "08:00-08:45;08:50-09:35;10:00-10:45;10:50-11:35;11:40-12:25;13:25-14:10;14:15-15:00;15:05-15:50;16:15-17:00;17:05-17:50;18:50-19:35;19:40-20:25;20:30-21:15",
+    "LastSync": null,
+    "AutoCampusRefresh": true,
+    "AutoSyncOnStartup": true,
+    "TermConfigured": false,
+    "ApplyAcademicHolidays": true,
+    "LastHolidayCheck": null,
+    "HolidayCheckStatus": "\u5185\u7F6E\uFF1A2026-09-17 \u6838\u5BF9\u7684\u6821\u672C\u90E8\u901A\u77E5"
+  },
+  "Items": [
+    {
+      "Id": "1b9014777da64eafad6d140107d11090",
+      "Kind": "\u7B14\u8BB0",
+      "Title": "A",
+      "Start": "2026-10-15T09:00:00+08:00",
+      "End": "2026-10-15T10:00:00+08:00",
+      "Location": "",
+      "Note": "\u672C\u5730\u5185\u5BB9",
+      "LibraryId": "default",
+      "NoteFormat": "rtf-v2",
+      "NoteBody": "{\u0022Rtf\u0022:\u0022e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcdWMxXGh0bWF1dHNwXGRlZmYye1xmb250dGJse1xmMFxmY2hhcnNldDAgVGltZXMgTmV3IFJvbWFuO317XGYyXGZjaGFyc2V0MCBNaWNyb3NvZnQgWWFIZWkgVUk7fX17XGNvbG9ydGJsXHJlZDBcZ3JlZW4wXGJsdWUwO1xyZWQyNTVcZ3JlZW4yNTVcYmx1ZTI1NTt9XGxvY2hcaGljaFxkYmNoXHBhcmRccGxhaW5cbHRycGFyXGl0YXAwe1xsYW5nMTAzM1xmczI0XGYyXGNmMCBcY2YwXHFqXHNsMzYwXHNsbXVsdDB7XGYyIHtcbHRyY2ggXHUyNjQxMj9cdTIyMzIwP1x1MjA4Njk/XHUyMzQ4MT99XGxpMFxyaTBcc2ExNTBcc2IwXGZpMFxxalxzbDM2MFxzbG11bHQwXHBhcn0NCn0NCn0=\u0022,\u0022Layout\u0022:{\u0022FontSize\u0022:16,\u0022LineSpacing\u0022:1.5,\u0022ParagraphSpacing\u0022:10,\u0022PageMargin\u0022:24,\u0022ColumnWidth\u0022:580},\u0022Embeds\u0022:[],\u0022Paragraphs\u0022:[{\u0022LineHeight\u0022:24,\u0022Margin\u0022:[0,0,0,10]}]}",
+      "NoteInk": "",
+      "NoteLinks": [
+        {
+          "Key": "note:b630082eb6d443dd8c862d210988beae",
+          "Label": "B",
+          "Kind": "note"
+        }
+      ],
+      "Attachments": [
+        {
+          "Name": "note-attachment.txt",
+          "File": "fec6f6f40ef34d6d86bb155eab02e791.txt"
+        }
+      ],
+      "ParentId": null,
+      "CampusUrl": null,
+      "Done": false,
+      "Cancelled": false,
+      "Repeat": "\u4E0D\u91CD\u590D",
+      "Until": "2027-02-15T00:00:00+08:00",
+      "Excluded": [],
+      "Reminders": null,
+      "AssistantKey": null,
+      "AssistantNoDue": false,
+      "AssistantRemoteDone": false,
+      "SourceKey": null,
+      "Scope": null,
+      "Original": null,
+      "LocalOverride": false,
+      "Pending": null,
+      "PendingRemoval": false,
+      "SchoolRemoved": false,
+      "SchoolSuspended": false,
+      "SchoolAdjustment": "",
+      "Teacher": "",
+      "Modified": "2026-10-15T22:51:58.4717864+08:00",
+      "HasConflict": false
+    },
+    {
+      "Id": "b630082eb6d443dd8c862d210988beae",
+      "Kind": "\u7B14\u8BB0",
+      "Title": "B",
+      "Start": "2026-10-15T09:00:00+08:00",
+      "End": "2026-10-15T10:00:00+08:00",
+      "Location": "",
+      "Note": "",
+      "LibraryId": "default",
+      "NoteFormat": "plain-v1",
+      "NoteBody": "",
+      "NoteInk": "",
+      "NoteLinks": [],
+      "Attachments": [],
+      "ParentId": null,
+      "CampusUrl": null,
+      "Done": false,
+      "Cancelled": false,
+      "Repeat": "\u4E0D\u91CD\u590D",
+      "Until": "2027-02-15T00:00:00+08:00",
+      "Excluded": [],
+      "Reminders": null,
+      "AssistantKey": null,
+      "AssistantNoDue": false,
+      "AssistantRemoteDone": false,
+      "SourceKey": null,
+      "Scope": null,
+      "Original": null,
+      "LocalOverride": false,
+      "Pending": null,
+      "PendingRemoval": false,
+      "SchoolRemoved": false,
+      "SchoolSuspended": false,
+      "SchoolAdjustment": "",
+      "Teacher": "",
+      "Modified": "2026-10-15T22:51:58.4717869+08:00",
+      "HasConflict": false
+    }
+  ],
+  "CampusActivities": [],
+  "CampusSources": [],
+  "Fired": [],
+  "Alerts": []
+}

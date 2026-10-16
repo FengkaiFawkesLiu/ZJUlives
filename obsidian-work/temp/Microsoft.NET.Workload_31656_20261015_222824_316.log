@@ -1,0 +1,14 @@
+[2026-10-15 22:28:24.317] [00007BA8] === Logging started ===
+[2026-10-15 22:28:24.326] [00007BA8] Executing: "C:\Program Files\dotnet\dotnet.exe" build E:\浙大生活\obsidian-work\src\Shike.csproj -c Release --nologo -o E:\浙大生活\obsidian-work\build -p:UseSharedCompilation=false, PID: 31656, PPID: 14732
+[2026-10-15 22:28:24.327] [00007BA8] IsElevated: False
+[2026-10-15 22:28:24.327] [00007BA8] Is64BitProcess: True
+[2026-10-15 22:28:24.327] [00007BA8] RebootPending: False
+[2026-10-15 22:28:24.327] [00007BA8] ProcessorArchitecture: amd64
+[2026-10-15 22:28:24.327] [00007BA8] HostArchitecture: x64
+[2026-10-15 22:28:24.327] [00007BA8] SdkDirectory: 10.0.401
+[2026-10-15 22:28:24.327] [00007BA8] VerifySignatures: False
+[2026-10-15 22:28:24.327] [00007BA8] SDK feature band: 10.0.400
+[2026-10-15 22:28:26.547] [00007BA8] Shutting down
+[2026-10-15 22:28:26.547] [00007BA8] Shutdown completed.
+[2026-10-15 22:28:26.547] [00007BA8] Restart required: False
+[2026-10-15 22:28:26.547] [00007BA8] === Logging ended ===

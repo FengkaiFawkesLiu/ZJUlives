@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'"><link rel="stylesheet" href="vendor/mathlive-static.css"><link rel="stylesheet" href="editor.css"><script src="vendor/mathlive.min.js"></script><script defer src="editor.js"></script><script defer src="test.js"></script></head><body>
+<header><span class="eyebrow">拾课 / 数学笔记</span><h1>把公式写清楚</h1><p>点击结构直接填写，也可以用键盘输入。所有内容仅保存在本地。</p></header>
+<nav id="categories" aria-label="公式分类"></nav><section id="tools" aria-label="公式模板"></section>
+<div class="editbar"><div><button id="visual" class="active">可视化编辑</button><button id="source">LaTeX 源码</button></div><div><button id="undo">撤销</button><button id="redo">重做</button></div></div>
+<main><div id="visual-area"><math-field id="mf" math-virtual-keyboard-policy="manual" aria-label="可直接编辑的数学公式"></math-field></div><textarea id="latex" hidden spellcheck="false" aria-label="LaTeX 源码" maxlength="1500"></textarea><p id="hint">点击分数、根号等模板开始。Tab 跳到下一空格，Shift+Tab 返回。</p></main>
+<div id="matrix-tools" hidden><span>先点击矩阵中的单元格：</span><button data-command="addRowAfter">＋行</button><button data-command="addColumnAfter">＋列</button><button data-command="removeRow">−行</button><button data-command="removeColumn">−列</button></div>
+<section class="preview"><div class="eyebrow">插入效果</div><div id="rendered"></div></section>
+<footer><div id="status" role="status"></div><div><button id="cancel">取消</button><button id="save" class="primary">插入公式</button></div></footer><div id="export" hidden></div>
+</body></html>

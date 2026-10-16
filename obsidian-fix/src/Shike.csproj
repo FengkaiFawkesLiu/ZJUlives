@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Shike</AssemblyName>
+    <RootNamespace>Shike</RootNamespace>
+    <Version>0.10.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Shike.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup><PackageReference Include="WpfMath" Version="2.1.0" /></ItemGroup>
+  <ItemGroup><PackageReference Include="Markdig" Version="0.41.3" /></ItemGroup><ItemGroup><Resource Include="Shike.ico" /></ItemGroup>
+<ItemGroup><PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3856.49" /><Content Include="formula-editor\**\*" Exclude="formula-editor\test.*" CopyToOutputDirectory="PreserveNewest" /></ItemGroup></Project>
+
+
+

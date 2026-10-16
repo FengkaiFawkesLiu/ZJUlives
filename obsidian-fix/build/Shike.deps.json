@@ -1,0 +1,144 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Shike/0.10.0": {
+        "dependencies": {
+          "Markdig": "0.41.3",
+          "Microsoft.Web.WebView2": "1.0.3856.49",
+          "WpfMath": "2.1.0",
+          "Microsoft.Web.WebView2.Core": "1.0.3856.49",
+          "Microsoft.Web.WebView2.WinForms": "1.0.3856.49",
+          "Microsoft.Web.WebView2.Wpf": "1.0.3856.49"
+        },
+        "runtime": {
+          "Shike.dll": {}
+        }
+      },
+      "Markdig/0.41.3": {
+        "runtime": {
+          "lib/net9.0/Markdig.dll": {
+            "assemblyVersion": "0.41.0.0",
+            "fileVersion": "0.41.3.0"
+          }
+        }
+      },
+      "Microsoft.Web.WebView2/1.0.3856.49": {
+        "runtimeTargets": {
+          "runtimes/win-arm64/native/WebView2Loader.dll": {
+            "rid": "win-arm64",
+            "assetType": "native",
+            "fileVersion": "1.0.3856.49"
+          },
+          "runtimes/win-x64/native/WebView2Loader.dll": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "1.0.3856.49"
+          },
+          "runtimes/win-x86/native/WebView2Loader.dll": {
+            "rid": "win-x86",
+            "assetType": "native",
+            "fileVersion": "1.0.3856.49"
+          }
+        }
+      },
+      "WpfMath/2.1.0": {
+        "dependencies": {
+          "XamlMath.Shared": "2.1.0"
+        },
+        "runtime": {
+          "lib/net6.0-windows7.0/WpfMath.dll": {
+            "assemblyVersion": "2.1.0.0",
+            "fileVersion": "2.1.0.0"
+          }
+        }
+      },
+      "XamlMath.Shared/2.1.0": {
+        "runtime": {
+          "lib/net6.0/XamlMath.Shared.dll": {
+            "assemblyVersion": "2.1.0.0",
+            "fileVersion": "2.1.0.0"
+          }
+        }
+      },
+      "Microsoft.Web.WebView2.Core/1.0.3856.49": {
+        "runtime": {
+          "Microsoft.Web.WebView2.Core.dll": {
+            "assemblyVersion": "1.0.3856.49",
+            "fileVersion": "1.0.3856.49"
+          }
+        }
+      },
+      "Microsoft.Web.WebView2.WinForms/1.0.3856.49": {
+        "runtime": {
+          "Microsoft.Web.WebView2.WinForms.dll": {
+            "assemblyVersion": "1.0.3856.49",
+            "fileVersion": "1.0.3856.49"
+          }
+        }
+      },
+      "Microsoft.Web.WebView2.Wpf/1.0.3856.49": {
+        "runtime": {
+          "Microsoft.Web.WebView2.Wpf.dll": {
+            "assemblyVersion": "1.0.3856.49",
+            "fileVersion": "1.0.3856.49"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Shike/0.10.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Markdig/0.41.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-i3vSTyGpBGWbJB04aJ3cPJs0T3BV2e1nduW3EUHK/i+xUupYbym75iZPss/XjqhS5JlBErwQYnx7ofK3Zcsozg==",
+      "path": "markdig/0.41.3",
+      "hashPath": "markdig.0.41.3.nupkg.sha512"
+    },
+    "Microsoft.Web.WebView2/1.0.3856.49": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OOBKvFgK0pUKcndvTK6/jUsbrPRwce62Wt/0hkJWDsK2AcsJ2ylOS/mLa4xAcNUTOs96YIjpPN4AHMADXJcrgQ==",
+      "path": "microsoft.web.webview2/1.0.3856.49",
+      "hashPath": "microsoft.web.webview2.1.0.3856.49.nupkg.sha512"
+    },
+    "WpfMath/2.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-216GtCBYFMPw5SaArNcuTgemgAWw985LihSEf7mtOjJYTN04X4BVFGPrkJ2Fiv1ffL8gX2xiRw/o+q1SC5oSAA==",
+      "path": "wpfmath/2.1.0",
+      "hashPath": "wpfmath.2.1.0.nupkg.sha512"
+    },
+    "XamlMath.Shared/2.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-p7W78KZc2EWuVqAd704m4yGWg0HtxahjNYRVxDWhw7npf8oMD8C7EUc1pjkjZIcmk5PxXJ+t5FE2Fs3gBYjv1A==",
+      "path": "xamlmath.shared/2.1.0",
+      "hashPath": "xamlmath.shared.2.1.0.nupkg.sha512"
+    },
+    "Microsoft.Web.WebView2.Core/1.0.3856.49": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Web.WebView2.WinForms/1.0.3856.49": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Web.WebView2.Wpf/1.0.3856.49": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

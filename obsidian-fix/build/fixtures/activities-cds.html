@@ -1,0 +1,896 @@
+﻿<!DOCTYPE html>
+<!--[if lt IE 7]>
+<html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>
+<html class="lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>
+<html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="">
+<!--<![endif]-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,Chrome=1">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="renderer" content="webkit">
+    <title> 浙江大学数据科学研究中心- 讲座</title>
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <link rel="shortcut icon" href="/assets/img/favicon.ico" type="image/x-icon" />
+
+    <link rel="stylesheet" href="/assets/addons/cms/home/css/bootstrap.min.css?v=1.0.83">
+    <link rel="stylesheet" href="/assets/addons/cms/home/css/bootstrap-responsive.css?v=1.0.83">
+    <link rel="stylesheet" href="/assets/addons/cms/home/css/reset.css?v=1.0.83">
+    <link rel="stylesheet" href="/assets/addons/cms/home/css/slick.css?v=1.0.83">
+    <link rel="stylesheet" href="/assets/addons/cms/home/css/animate.min.css?v=1.0.83">
+    <link rel="stylesheet" href="/assets/addons/cms/home/css/index.css?v=1.0.83">
+    <link rel="stylesheet" href="/assets/addons/cms/home/css/main.css?v=1.0.83">
+    <link rel="stylesheet" href="/assets/addons/cms/home/css/animate.min.css?v=1.0.83">
+ <link rel="stylesheet" href="/assets/addons/cms/home/css/swiper-3.4.2.min.css">
+<script src="/assets/addons/cms/home/js/swiper-3.4.2.min.js"></script>
+
+    <script type="text/javascript" src="/assets/addons/cms/home/js/wow.min.js"></script>
+    <script src="/assets/addons/cms/home/js/jquery.min.js"></script>
+    <script src="/assets/addons/cms/home/js/set.js"></script>
+    <script src="/assets/addons/cms/home/js/slick.js"></script>
+    <script src="/assets/addons/cms/home/js/jquery.SuperSlide.2.1.3.js"></script>
+    <script src="/assets/addons/cms/home/js/TouchSlide.1.1.js"></script>
+    <script src="/assets/addons/cms/home/js/jquery-ui.js"></script>
+    <script src="/assets/addons/cms/home/js/index.js"></script>
+
+    <!--@formatter:off-->
+    <style>
+        {
+            if isset($disturbArr) && $disturbArr
+        }
+
+        {
+            $disturbArr|implode=',',
+            ###
+        }
+
+        {
+            font-size: 0;
+            height: 0;
+            display: inline-block;
+            line-height: 0;
+            float: left;
+        }
+
+        {
+        /if
+        }
+    </style>
+    <!--@formatter:on-->
+
+    <!--[if lt IE 9]>
+    <script src="/libs/html5shiv.js"></script>
+    <script src="/libs/respond.min.js"></script>
+    <![endif]-->
+
+    
+</head>
+<body class="group-page skin-white">
+    <div class="main-box">
+        <div class="header">
+            <div class="pc-header hidden-xs hidden-sm">
+                <div class="layout clearfix">
+                    <div class="logo fl">
+                        <a href="/">
+                            <img src="/assets/addons/cms/home/images/logo.png" alt="">
+                        </a>
+
+                    </div>
+
+                    <div class="fr clearfix">
+                        <div class="links clearfix">
+                            <ul class=" clearfix fr">
+
+                                <li class="link vx fl share social-share" data-initialized="true" data-disabled="we-chat">
+                                    <a href="javascript:;" class = " social-share-icon icon-wechat"><span></span></a>
+<script src="/assets/addons/cms/home/js/jquery.share.min.js"></script>
+                        <script src="/assets/addons/cms/home/js/social-share.min.js"></script>
+<script>
+                            var $config = {
+                                initialized:true,
+wechatQrcodeTitle   : "", // 微信二维码提示文字
+    wechatQrcodeHelper  : '',
+    //...
+   };
+
+socialShare('.social-share', $config)
+
+
+let vx = $('.links .vx');
+vx.on('mouseenter',function(){
+	$(this).find('.wechat-qrcode').stop().slideDown(100);
+}).on('mouseleave',function(){
+$(this).find('.wechat-qrcode').stop().slideUp(100);
+
+})
+
+                        </script>
+
+                                </li>
+                                <li class="link email fl">
+                                    <a href="mailto:cds@zju.edu.cn"><span></span></a>
+
+                                </li>
+                                <li class="link phone fl">
+                                    <a href="/about.html"><span></span></a>
+
+                                </li>
+
+ <!-- <li class="link unlogin fl">
+                                  <a href="/index/user/index.html" style="color: #fff;float: left;width: auto;padding-right: 20px;
+    line-height: 31px;"> 欢迎你， 老师 !</a><a href="/index/user/logout.html" style="float: right"><span></span></a>
+
+                                </li> -->
+								<li class="link unlogin fl" style="display:none;">
+                                  <span style="color: #fff;float: left;width: auto;padding-right: 20px;
+    line-height: 31px;"> 欢迎你，<span class="nickname"></span> 老师 !</span><a href="/casLogin.php?logout=1.html" style="float: right"><span></span></a>
+
+                                </li>
+ 				
+
+			<!--	<li class="link login fl">
+                                    <a href="/index/user/login.html"><span></span></a>
+
+                                </li> -->
+								<li class="link login fl">
+                                    <a class="user-login" href="/casLogins.php"><span></span></a>
+
+                                </li>
+
+
+                            </ul>
+                        </div>
+
+                        <div class="search fr">
+                            <form action="/s.html"
+                                  method="get">
+                                <input name="title"
+                                       data-suggestion-url="/addons/cms/search/suggestion.html" type="search"
+                                       id="searchinput" value=""
+                                       placeholder="请输入关键词">
+                                <button  type="submit"><img src="/assets/addons/cms/home/images/search.png"></button>
+                                <input type="hidden" name="__searchtoken__" value="bf2bd28c2d68bbe1bb73fc34bc37bdb2" />                            </form>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+            <div class="mo-header ">
+                <!-- 手机端头部开始 -->
+                <div class="head-mo-box  visible-xs visible-sm">
+                    <div class="global-inner clearfix">
+                        <div class="head-logo-box">
+                            <a href="/" class="head-logo">
+                                <img src="/assets/addons/cms/home/images/logo.png" alt="">
+                            </a>
+
+                        </div>
+                        <div class=" head-tool-box clearfix">
+                            <div class="links clearfix">
+                                <ul class=" clearfix fr">
+                                    <li class="link seach fl">
+                                        <a ><span></span></a>
+                                    </li>
+
+                                    <li class="icon link icon-menu icon-hamburger fl">
+                                        <div class="inner">
+                                            <span class="line"></span>
+                                            <span class="line"></span>
+                                            <span class="line"></span>
+                                        </div>
+                                    </li>
+                                    <li class="icon link icon-close icon-hamburger fl">
+                                        <div class="inner">
+                                            <span class="line"></span>
+                                            <span class="line"></span>
+                                            <span class="line"></span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+                <!-- 手机端头部结束 -->
+                <!-- 手机端搜索开始 -->
+                <div class="seach-box ">
+                    <div class="sch">
+                        <form class="form-inline" action="/s.html"
+                              method="get">
+                            <input name="title" class="sch-inp "
+                                   data-suggestion-url="/addons/cms/search/suggestion.html" type="search"
+                                   id="searchinput1" value=""
+                                   placeholder="请输入关键词" style="outline:none;">
+                            <button  type="submit" class="btn-sch">搜索</button>
+                            <input type="hidden" name="__searchtoken__" value="bf2bd28c2d68bbe1bb73fc34bc37bdb2" />                        </form>
+
+                    </div>
+                </div>
+                <!-- 手机端搜索结束 -->
+                <!-- 手机端导航开始 -->
+                <div class="pop-ph-nav">
+                    <ul class="ph-nav-list">
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                                <a href="/"> 首页</a>
+                            </h5>
+                        </li>
+                        <!--如果你需要自定义NAV,可使用channellist标签来完成,这里只设置了2级,如果显示无限级,请使用cms:nav标签-->
+                        
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                            <a href="/zxgk.html"> 中心概况</a>
+                                <i class="arrow"></i>                            </h5>
+                            <!--判断是否有子级或高亮当前栏目-->
+                            
+                                <ul class="ph-nav-level2" style="display: none;">
+                                    
+                                    <li><a href="/zxjj.html" class="nav-level2">中心简介</a></li>
+
+                                    
+                                    <li><a href="/zzjg.html" class="nav-level2">组织架构</a></li>
+
+                                    
+                                    <li><a href="/xsyjjg.html" class="nav-level2">下设研究机构</a></li>
+
+                                    
+
+                                </ul>
+                                                    </li>
+
+                        
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                            <a href="/news.html"> 新闻中心</a>
+                                <i class="arrow"></i>                            </h5>
+                            <!--判断是否有子级或高亮当前栏目-->
+                            
+                                <ul class="ph-nav-level2" style="display: none;">
+                                    
+                                    <li><a href="/news-n.html" class="nav-level2">新闻中心</a></li>
+
+                                    
+
+                                </ul>
+                                                    </li>
+
+                        
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                            <a href="/xsjl.html"> 学术交流</a>
+                                <i class="arrow"></i>                            </h5>
+                            <!--判断是否有子级或高亮当前栏目-->
+                            
+                                <ul class="ph-nav-level2" style="display: none;">
+                                    
+                                    <li><a href="/jzyg.html" class="nav-level2">讲座</a></li>
+
+                                    
+                                    <li><a href="/hyyg.html" class="nav-level2">会议</a></li>
+
+                                    
+                                    <li><a href="/zyxz.html" class="nav-level2">资源下载</a></li>
+
+                                    
+
+                                </ul>
+                                                    </li>
+
+                        
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                            <a href="/kxyj.html"> 科学研究</a>
+                                <i class="arrow"></i>                            </h5>
+                            <!--判断是否有子级或高亮当前栏目-->
+                            
+                                <ul class="ph-nav-level2" style="display: none;">
+                                    
+                                    <li><a href="/kx-news.html" class="nav-level2">最新通知</a></li>
+
+                                    
+                                    <li><a href="/kyxm-news.html" class="nav-level2">科研项目</a></li>
+
+                                    
+                                    <li><a href="/kycg-news.html" class="nav-level2">科研成果</a></li>
+
+                                    
+
+                                </ul>
+                                                    </li>
+
+                        
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                            <a href="/jyjx.html"> 教育教学</a>
+                                <i class="arrow"></i>                            </h5>
+                            <!--判断是否有子级或高亮当前栏目-->
+                            
+                                <ul class="ph-nav-level2" style="display: none;">
+                                    
+                                    <li><a href="/zxtz2.html" class="nav-level2">最新通知</a></li>
+
+                                    
+                                    <li><a href="/pyjh2.html" class="nav-level2">培养计划</a></li>
+
+                                    
+                                    <li><a href="/zsxx.html" class="nav-level2">招生信息</a></li>
+
+                                    
+                                    <li><a href="/zxkc.html" class="nav-level2">课程资源</a></li>
+
+                                    
+                                    <li><a href="/yjs-news.html" class="nav-level2">研究生活动</a></li>
+
+                                    
+
+                                </ul>
+                                                    </li>
+
+                        
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                            <a href="/zpxx.html"> 招聘信息</a>
+                                <i class="arrow"></i>                            </h5>
+                            <!--判断是否有子级或高亮当前栏目-->
+                            
+                                <ul class="ph-nav-level2" style="display: none;">
+                                    
+                                    <li><a href="/jszp.html" class="nav-level2">教师招聘</a></li>
+
+                                    
+                                    <li><a href="/bshzp.html" class="nav-level2">博士后招聘</a></li>
+
+                                    
+                                    <li><a href="/zyzp.html" class="nav-level2">职员招聘</a></li>
+
+                                    
+
+                                </ul>
+                                                    </li>
+
+                        
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                            <a href="/zhfw.html"> 综合服务</a>
+                                <i class="arrow"></i>                            </h5>
+                            <!--判断是否有子级或高亮当前栏目-->
+                            
+                                <ul class="ph-nav-level2" style="display: none;">
+                                    
+                                    <li><a href="/zxtz.html" class="nav-level2">最新通知</a></li>
+
+                                    
+                                    <li><a href="/fwzn.html" class="nav-level2">服务指南</a></li>
+
+                                    
+                                    <li><a href="/cdyy.html" class="nav-level2">场地预约</a></li>
+
+                                    
+                                    <li><a href="/wjhb.html" class="nav-level2">文件汇编</a></li>
+
+                                    
+
+                                </ul>
+                                                    </li>
+
+                        
+                        <li class="has-subnav">
+                            <h5 class="nav-level1">
+                            <a href="/about.html"> 联系我们</a>
+                                <i class="arrow"></i>                            </h5>
+                            <!--判断是否有子级或高亮当前栏目-->
+                            
+                                <ul class="ph-nav-level2" style="display: none;">
+                                    
+                                    <li><a href="/about1.html" class="nav-level2">联系我们</a></li>
+
+                                    
+
+                                </ul>
+                                                    </li>
+
+                        
+                    </ul>
+
+                    <div class="links clearfix">
+                        <ul class=" clearfix ">
+
+                            <!--<li class="link vx fl share social-share" data-initialized="true" data-disabled="we-chat">
+                                <a href="javascript:;" class="social-share-icon icon-wechat"><span></span></a>
+                            </li>-->
+                            <li class="link email fl">
+                                <a href="mailto:cds@zju.edu.cn"><span></span></a>
+
+                            </li>
+                            <li class="link phone fl">
+                                <a href="/about.html"><span></span></a>
+
+                            </li>
+							<li class="link unlogin fl" style="display:none;">
+                                  <span style="color: #fff;float: left;width: auto;padding-right: 20px;
+    line-height: 31px;"> 欢迎你，<span class="nickname"></span> 老师 !</span><a href="/casLogin.php?logout=1.html" style="float: right"><span></span></a>
+
+                            </li>
+							<li class="link login fl">
+                                    <a class="user-login" href="/casLogins.php"><span></span></a>
+
+                            </li>
+<!-- 				<li class="link login fl">
+                                    <a href="/index/user/login.html"><span></span></a>
+
+                                </li>
+ -->
+
+
+                        </ul>
+                    </div>
+                </div>
+                <!-- 手机端导航结束 -->
+            </div>
+        </div>
+        <div class="head-place"></div>
+        <div class="hidden-xs hidden-sm nav">
+            <div class="layout">
+                <ul class="menu clearfix">
+                    <li class="menu_item">
+                        <a href="/">首页</a>
+
+                    </li>
+                    <!--如果你需要自定义NAV,可使用channellist标签来完成,这里只设置了2级,如果显示无限级,请使用cms:nav标签-->
+                                        <li class="menu_item">
+                        <a href="/zxgk.html">中心概况</a>
+                                                    <div class="drow_down">
+                                                                    <a href="/zxjj.html">中心简介</a>
+                                                                    <a href="/zzjg.html">组织架构</a>
+                                                                    <a href="/xsyjjg.html">下设研究机构</a>
+                                                            </div>
+                                            </li>
+                                        <li class="menu_item">
+                        <a href="/news.html">新闻中心</a>
+                                                    <div class="drow_down">
+                                                                    <a href="/news-n.html">新闻中心</a>
+                                                            </div>
+                                            </li>
+                                        <li class="menu_item">
+                        <a href="/xsjl.html">学术交流</a>
+                                                    <div class="drow_down">
+                                                                    <a href="/jzyg.html">讲座</a>
+                                                                    <a href="/hyyg.html">会议</a>
+                                                                    <a href="/zyxz.html">资源下载</a>
+                                                            </div>
+                                            </li>
+                                        <li class="menu_item">
+                        <a href="/kxyj.html">科学研究</a>
+                                                    <div class="drow_down">
+                                                                    <a href="/kx-news.html">最新通知</a>
+                                                                    <a href="/kyxm-news.html">科研项目</a>
+                                                                    <a href="/kycg-news.html">科研成果</a>
+                                                            </div>
+                                            </li>
+                                        <li class="menu_item">
+                        <a href="/jyjx.html">教育教学</a>
+                                                    <div class="drow_down">
+                                                                    <a href="/zxtz2.html">最新通知</a>
+                                                                    <a href="/pyjh2.html">培养计划</a>
+                                                                    <a href="/zsxx.html">招生信息</a>
+                                                                    <a href="/zxkc.html">课程资源</a>
+                                                                    <a href="/yjs-news.html">研究生活动</a>
+                                                            </div>
+                                            </li>
+                                        <li class="menu_item">
+                        <a href="/zpxx.html">招聘信息</a>
+                                                    <div class="drow_down">
+                                                                    <a href="/jszp.html">教师招聘</a>
+                                                                    <a href="/bshzp.html">博士后招聘</a>
+                                                                    <a href="/zyzp.html">职员招聘</a>
+                                                            </div>
+                                            </li>
+                                        <li class="menu_item">
+                        <a href="/zhfw.html">综合服务</a>
+                                                    <div class="drow_down">
+                                                                    <a href="/zxtz.html">最新通知</a>
+                                                                    <a href="/fwzn.html">服务指南</a>
+                                                                    <a href="/cdyy.html">场地预约</a>
+                                                                    <a href="/wjhb.html">文件汇编</a>
+                                                            </div>
+                                            </li>
+                                        <li class="menu_item">
+                        <a href="/about.html">联系我们</a>
+                                                    <div class="drow_down">
+                                                                    <a href="/about1.html">联系我们</a>
+                                                            </div>
+                                            </li>
+                                    </ul>
+            </div>
+        </div>
+    </div>
+    <main class="main-content">
+        
+<link rel="stylesheet" href="/assets/addons/cms/home/css/left.css">
+<link rel="stylesheet" href="/assets/addons/cms/home/css/list.css">
+<div class="banner">
+<div class="banner-bg" style="background-image: url('/uploads/20221214/6b9bc7dff34e2061c56ee027527ab7e4.jpg')"></div>   
+
+
+
+</div>
+<div class="list-container">
+    <div class="layout clearfix">
+          <!-- 左侧 -->
+	<div class="left fl">
+				<div class="menu-header">
+			<div class="content">
+				<h3>讲座</h3>
+			</div>
+		</div>
+
+		
+		<ul class="menu1">
+			
+					<li class="menu-item selected">
+					<a href="/xsjl.html">学术交流</a>
+					<ul class="menu-down">
+														 <li class="down-item selected">
+										<a href="/jzyg.html"><em></em>讲座</a>
+								</li>
+															 <li class="down-item ">
+										<a href="/hyyg.html"><em></em>会议</a>
+								</li>
+															 <li class="down-item ">
+										<a href="/zyxz.html"><em></em>资源下载</a>
+								</li>
+												</ul>
+				</li>
+			
+		</ul>
+	</div>
+
+        <div class="right">
+
+            <div class="top ">
+
+                <div class="position n-cur">
+
+
+                    <ol class="breadcrumb">
+                        <!-- S 面包屑导航 -->
+                                                <li><a href="/" class="li">首页</a></li>
+                                                <li><a href="/xsjl.html" class="li">学术交流</a></li>
+                                                <li><a href="/jzyg.html" class="li">讲座</a></li>
+                        
+                        <!-- E 面包屑导航 -->
+                    </ol>
+                </div>
+            </div>
+            <div class="bottom">
+		<ul class="list-culture clearfix">
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3209.html">
+                            <div class="date">
+                                <span class="day">23</span>
+                                <span class="month">04月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3 style="font-weight:bold;color:#006ce2;">数据科学研究中心讲座钉钉群</h3>
+                                <p class="person"></p>
+                                <p class="time"></p>
+                                <p class="address"></p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3826.html">
+                            <div class="date">
+                                <span class="day">21</span>
+                                <span class="month">09月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Generalized Bispectrum with Applications to Testing Nonlinear Serial Dependence</h3>
+                                <p class="person">洪永淼（中国科学院数学与系统科学研究院，关肇直首席研究员）</p>
+                                <p class="time">2026年9月21日16:00</p>
+                                <p class="address">浙江大学紫金港校区行政楼1312会议室</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3824.html">
+                            <div class="date">
+                                <span class="day">20</span>
+                                <span class="month">09月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Active Hypothesis Testing under Computational Budgets</h3>
+                                <p class="person">夏寅（复旦大学，教授）</p>
+                                <p class="time">2026年9月20日14:00</p>
+                                <p class="address">浙江大学紫金港校区行政楼1312会议室</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3823.html">
+                            <div class="date">
+                                <span class="day">24</span>
+                                <span class="month">08月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Attention Seeking in Genome-wide Association Studies</h3>
+                                <p class="person">张和平（Yale University, Professor ）</p>
+                                <p class="time">2026年8月24日14:00</p>
+                                <p class="address">浙江大学紫金港校区行政楼1312会议室</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3821.html">
+                            <div class="date">
+                                <span class="day">04</span>
+                                <span class="month">07月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>用U统计量揭开大模型推理的神秘面纱</h3>
+                                <p class="person">史成春（LSE，Associate Professor）</p>
+                                <p class="time">2026年7月4日16:00</p>
+                                <p class="address">浙江大学紫金港校区行政楼1417报告厅</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3816.html">
+                            <div class="date">
+                                <span class="day">28</span>
+                                <span class="month">06月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>基于因果技术的可信医疗决策模型</h3>
+                                <p class="person">周晓华（北京大学，讲席教授）</p>
+                                <p class="time">2026年6月28日10:00</p>
+                                <p class="address">浙江大学紫金港校区行政楼1417报告厅</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3814.html">
+                            <div class="date">
+                                <span class="day">26</span>
+                                <span class="month">06月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Fiedler Sign Consistency for Hierarchical Stochastic Block Models </h3>
+                                <p class="person">Xiaodong Li（UC Davis，Associate professor）</p>
+                                <p class="time">2026年6月26日15:30</p>
+                                <p class="address">浙江大学紫金港校区行政楼1417报告厅</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3811.html">
+                            <div class="date">
+                                <span class="day">18</span>
+                                <span class="month">06月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Smooth Optimization for Sparse Deep Learning via Overparameterization</h3>
+                                <p class="person">David Rügamer (LMU Munich, Associate Professor)</p>
+                                <p class="time">2026年6月18日10:00</p>
+                                <p class="address">浙江大学紫金港校区行政楼1312会议室</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3799.html">
+                            <div class="date">
+                                <span class="day">05</span>
+                                <span class="month">06月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Factor Models of Matrix-Valued Time Series: Nonstationarity and Cointegration</h3>
+                                <p class="person">李德柜（澳门大学，教授）</p>
+                                <p class="time">2026年6月5日 10:00</p>
+                                <p class="address">浙江大学紫金港校区行政楼1417报告厅</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3801.html">
+                            <div class="date">
+                                <span class="day">30</span>
+                                <span class="month">05月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Sparse Representation and Recovery of Sparse Signals</h3>
+                                <p class="person">谌稳固（北京应用物理与计算数学研究所，研究员）</p>
+                                <p class="time">2026年5月30日9:30</p>
+                                <p class="address">浙江大学紫金港校区行政楼1312会议室</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3785.html">
+                            <div class="date">
+                                <span class="day">19</span>
+                                <span class="month">05月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Contextual Dynamic Pricing: Algorithms, Optimality, and Local Differential Privacy Constraints</h3>
+                                <p class="person">蒋斐宇（复旦大学，副教授）</p>
+                                <p class="time">2026年5月19日15:30</p>
+                                <p class="address">浙江大学紫金港校区行政楼1417报告厅</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3784.html">
+                            <div class="date">
+                                <span class="day">18</span>
+                                <span class="month">05月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Structured Heterogeneity: A Subgroup Learning Perspective</h3>
+                                <p class="person">周岭（西南财经大学，教授）</p>
+                                <p class="time">2026年5月18日15:30</p>
+                                <p class="address">浙江大学紫金港校区行政楼1417报告厅</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3781.html">
+                            <div class="date">
+                                <span class="day">11</span>
+                                <span class="month">05月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Denoising Diffusions: Optimal rate of Discretisation in Wasserstein Distance</h3>
+                                <p class="person">Arnak Dalalyan（ENSAE Paris，Professor）</p>
+                                <p class="time">2026年5月11日10:00</p>
+                                <p class="address">浙江大学紫金港校区行政楼1417报告厅</p>
+                            </div>
+                        </a>
+                    </li>
+                                        <li class="culture-item wow fadeInUp clearfix">
+                        <a href="/a/jzyg/3774.html">
+                            <div class="date">
+                                <span class="day">28</span>
+                                <span class="month">04月</span>
+                                <span class="jiangzuo">  讲座 </span>
+                            </div>
+                            <div class="content">
+                                <h3>Tail-Aware Information-Theoretic Generalization Bounds with Applications to LLM Safety Alignment</h3>
+                                <p class="person">张慧铭（北京航空航天大学，副教授）</p>
+                                <p class="time">2026年4月28日15:30</p>
+                                <p class="address">浙江大学紫金港校区行政楼1417报告厅</p>
+                            </div>
+                        </a>
+                    </li>
+                                    </ul>
+<!-- S 分页  -->
+<div class="pager">
+<div class="pages"><ul ><li class="prev"><a>&laquo;</a></li> <li class="on"><a>1</a></li><li><a href="?apage1=2">2</a></li><li><a href="?apage1=3">3</a></li><li><a href="?apage1=4">4</a></li><li><a href="?apage1=5">5</a></li><li><a href="?apage1=6">6</a></li><li><a href="?apage1=7">7</a></li><li><a href="?apage1=8">8</a></li><li class="prev"><a>...</a></li><li><a href="?apage1=19">19</a></li><li><a href="?apage1=20">20</a></li> <li><a href="?apage1=2">&raquo;</a></li></ul></div></div>
+ <!-- E 分页 -->
+
+
+               
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    </main>
+    <footer>
+        <div class="footer_container">
+            <div class="layout clearfix">
+                <div class="footer_top clearfix">
+                    <div class="ewm clearfix">
+                        <div class="logo">
+                            <a href="javascript:;">
+                                <img src="/assets/addons/cms/home/images/ewm.png" alt="">
+                            </a>
+                        </div>
+                        <div class="text">
+                            <div class="text_top">
+                            <span>
+                                扫一扫二维码
+                            </span>
+                            </div>
+                            <div class="text_bot">
+                                <span>更多资讯请关注我们</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div  class="line"></div>
+
+                    <div class="contact">
+                        <div class="title"><span>联系我们</span></div>
+                        <ul>
+                                                        <li class="info">
+                                <p>电话：0571-88208268&nbsp; &nbsp; 0571-88208302 </p>
+                            </li>
+                                                        <li class="info">
+                                <p>邮箱：cds@zju.edu.cn </p>
+                            </li>
+                                                        <li class="info">
+                                <p>地址：杭州市余杭塘路866号浙江大学紫金港校区 </p>
+                            </li>
+                                                    </ul>
+
+                    </div>
+                    <div class="line"></div>
+                    <div class="links clearfix">
+                        <div class="title">
+                            <span>友情链接</span>
+
+                        </div>
+                        <div class="links_btn">
+                            <span>友情链接</span>
+                            <div class="links_item">
+                                                                <a href=" /a/links/2038.html"><span>浙江大学综合服务中心</span> </a>
+                                                                <a href=" /a/links/2037.html"><span>浙江大学科学技术研究院</span> </a>
+                                                                <a href=" /a/links/2036.html"><span>浙江大学数学科学学院</span> </a>
+                                                                <a href=" /a/links/2035.html"><span>浙江大学</span> </a>
+                                                                <a href=" /a/links/2034.html"><span>浙江大学计算机科学与技术学院</span> </a>
+                                                                <a href=" /a/links/2033.html"><span>浙江大学校务服务网</span> </a>
+                                                                <a href=" /a/links/2032.html"><span>浙江大学管理学院</span> </a>
+                                                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="copyright">
+            <div class="layout">
+                版权所有©&nbsp;2026 浙江大学数据科学研究中心   浙ICP备05074421号                <span class="space"></span>
+                <span class="copyright_i">
+                <i class="">
+                    技术支持 :
+                    <a href="https://www.hzccx.com/" target="_blank">寸草心科技</a>&nbsp;&nbsp;
+                    <a href="/wescms.php" target="_blank">管理登录</a>
+                </i>
+                <span class="space"></span>
+<!--                <i>您是本站第<span>54902</span>位访客者-->
+<!--                    &nbsp;&nbsp;-->
+<!--                </i>-->
+            </span>
+            </div>
+
+
+        </div>
+    </footer>
+	<script>
+
+		$.get('http://cds.zju.edu.cn/addons/mrbs/api/user',function(res){
+			if(res.code == 1 && res.msg == '查询成功' ) {
+				$('.login').css('display','none');
+				$('.unlogin').css('display','block');
+				$('.unlogin .nickname').html(res.data.name);
+			}
+
+		})
+
+	</script>
+</body>
+</html>

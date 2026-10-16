@@ -1,0 +1,104 @@
+PASS Versions share independent data directory
+PASS Weekly recurrence includes last day and skips exception
+PASS Overnight event appears on both days
+PASS Touching endpoints do not conflict
+PASS Detaching one occurrence preserves other weeks
+PASS School refresh preserves personal notes and attachments
+PASS Local schedule override triggers update conflict
+PASS Keeping local revision acknowledges school baseline
+PASS Accepting school clears override but keeps note
+PASS Partial sync never removes missing entries
+PASS Authoritative removal respects local edit
+PASS School event can reappear after removal
+PASS Sync is idempotent and scoped by term
+PASS Reminders are due once and honor disabled course settings
+PASS Completed and cancelled items never remind
+PASS Negative reminder rejected
+PASS Atomic save and restart persistence
+PASS Full backup restores attachment bytes
+PASS Corrupt backup leaves current data intact
+PASS Malicious attachment path rejected
+PASS School parser respects weekdays, halves and parity
+PASS Exam dates and seating parsed without guessing missing dates
+PASS Unexpected school response fails before merge
+PASS DPAPI credentials roundtrip without plaintext on disk
+PASS DPAPI tampering fails closed
+PASS Export never includes saved credentials
+PASS Relative update age advances and never goes negative
+PASS Every launch fetch can refresh through the provider contract
+PASS Offline startup refresh leaves previous timestamp and data
+PASS Holiday course exchanges operate in both directions
+PASS Holiday application is idempotent and reversible
+PASS Makeup dates preserve time, location and stable source ID
+PASS Explicit suspended days disappear from calendar and reminders
+PASS Holiday weekends are not blanket-cancelled
+PASS Holiday adjustment never changes personal activities or exams
+PASS Applying holidays to existing cached courses preserves notes
+PASS First-run migration backs up original schedule exactly once
+PASS Local overrides conflict instead of disappearing for a holiday
+PASS Encoded timetable HTML and structured campus room fields parse
+PASS Unknown official notice does not count as verified
+PASS Empty automatic responses do not remove cached schedules
+PASS Actual official lecture HTML yields upcoming lectures with rooms
+PASS Actual club feed keeps publication date separate from event time
+PASS Sports source parses dates and official links
+PASS Activity merge deduplicates and preserves personal calendar edits
+PASS Malformed page fails without returning empty successful refresh
+PASS Only official HTTPS activity URLs accepted
+PASS Activity cache survives local backup and restore
+PASS Generate dated public activity seed from fetched official pages
+PASS All 13 official periods match downloaded current Celechron config
+PASS Parser uses official boundaries for every class period
+PASS Cached correction preserves holiday date, notes and deletion; is idempotent
+PASS Correction leaves exams, personal events and manually overridden times intact
+PASS Migration backs up before correction and keeps custom time settings
+PASS Rich note codec preserves bold text and plain search text
+PASS Course graph deduplicates meetings and isolates libraries
+PASS Embedded local image survives rich note save and reload
+PASS Cross-library note links rejected before persistence
+PASS Note backup restores rich text, attachments, links and graph positions
+PASS Legacy note migration preserves IDs, notes and course association with one backup
+PASS Deleting a target leaves external reference recognizable
+PASS Adding and removing note association updates both endpoints without duplicates
+PASS Schema upgrade unions directed legacy edges instead of losing them
+PASS Obsidian unregistered and unreadable registration choose vault instead of invalid note URI
+PASS Obsidian registered vault resolves exact normalized path and uses encoded ID
+PASS Obsidian selected library, duplicate titles, reciprocal links and text-only files
+PASS Obsidian rich text and LaTeX export without previews or extra metadata
+PASS Legacy preview exports refresh even when source is unchanged
+PASS Obsidian text-only export does not read or copy attachments
+PASS Formula renderer handles nested fractions, scripts and radicals locally
+PASS Unsupported or malformed formula syntax rejected
+PASS LaTeX matrices and aligned equations render with delimiters
+PASS Legacy rich text still opens under versioned codec
+PASS Formula metadata survives full codec roundtrip
+PASS Logout purge removes academics from active data and automatic history, retaining personal attachments
+PASS Assistant import deduplicates across repeated snapshots and preserves notes and reminders
+PASS Remote submission and reopening update completion without overriding manual completion
+PASS Deleted imported tasks remain hidden and never duplicate
+PASS Missing due date suppresses calendar and restores original reminders when date returns
+PASS No-date task stays in assistant without fabricated calendar date
+PASS Returned books finish only matching account; missing coursework remains open
+PASS Invalid and duplicate snapshots leave cached items and freshness unchanged
+PASS Course parser excludes ordinary resources and retains overdue work and verified submissions
+PASS Malformed course status is not treated as empty success
+PASS Library accepts single loan and parses date-only deadline and renewal eligibility
+PASS Library malformed and error responses cannot mark loans returned
+PASS Only explicit server attendance status counts as success
+PASS Attendance rejects stale and inaccurate location
+PASS Redirect allowlist refuses credentials on unknown hosts and unencrypted URLs
+PASS Attendance cancellation prevents any network submission
+PASS Attendance sends exact coordinates once and requires status confirmation
+PASS Course request failure aborts complete snapshot
+PASS Assistant logs are bounded and old backups retain valid default assistant state
+PASS CAS service reauthentication reuses identical credential and preserves service query
+PASS Expired read session reauthenticates once and repeats only the read
+PASS Generic CAS portal redirect is never fetched and does not block service authentication
+PASS Legacy service redirect upgrades HTTPS without broadening host allowlist
+PASS Current identity broker chain preserves service state and returns to course session
+PASS Unavailable submission status preserves previous completion and still updates deadline
+PASS HTTP 404 on optional status does not prevent authoritative assignment import
+PASS Rejected CAS form never becomes a successful connection
+PASS Authentication diagnostics identify host and stage without exposing secrets
+
+102/102 passed. Temporary fixtures: E:\浙大生活\obsidian-work\temp\Shike-tests-b7458bf351334e40ac3596d4fafe07c6
