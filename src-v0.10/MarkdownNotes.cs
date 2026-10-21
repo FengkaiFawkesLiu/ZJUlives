@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
@@ -91,7 +91,7 @@ public static class MarkdownNotes
                     if (Uri.TryCreate(link.Url, UriKind.Absolute, out var uri) && uri.Scheme is "https" or "http")
                     {
                         var hyperlink = new Hyperlink { NavigateUri = uri, Foreground = Brush("#387565"), ToolTip = uri.AbsoluteUri }; Inlines(link, hyperlink.Inlines);
-                        hyperlink.RequestNavigate += (_, e) => { e.Handled = true; try { Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); } catch (Exception ex) { MessageBox.Show("无法打开链接：" + ex.Message); } }; target.Add(hyperlink);
+                        hyperlink.RequestNavigate += (_, e) => { e.Handled = true; try { Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true }); } catch (Exception ex) { UiMessage.Show("无法打开链接：" + ex.Message); } }; target.Add(hyperlink);
                     }
                     else Inlines(link, target);
                     break;

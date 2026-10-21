@@ -14,6 +14,9 @@ public sealed class AssistantEntry
     public bool Complete { get; set; }
     public bool Renewable { get; set; }
     public string Barcode { get; set; } = "";
+    public DateTime? ReturnedAt { get; set; }
+    public string Branch { get; set; } = "";
+    public string CallNumber { get; set; } = "";
 }
 public sealed class AssistantSource
 {
@@ -21,6 +24,7 @@ public sealed class AssistantSource
     public DateTime? Updated { get; set; }
     public string Status { get; set; } = "尚未连接";
     public List<AssistantEntry> Entries { get; set; } = new();
+    public int? TotalAvailable { get; set; }
 }
 public sealed class CampusAssistantState
 {
@@ -28,6 +32,7 @@ public sealed class CampusAssistantState
     public bool PintiaEnabled { get; set; }
     public AssistantSource Courses { get; set; } = new();
     public AssistantSource Library { get; set; } = new();
+    public AssistantSource LibraryHistory { get; set; } = new();
     public AssistantSource Pintia { get; set; } = new();
     public List<string> SignLog { get; set; } = new();
     public HashSet<string> SignAttempted { get; set; } = new();
@@ -35,12 +40,14 @@ public sealed class CampusAssistantState
 }
 public static class AssistantMerge
 {
-    public const string LibraryWebsite = "https://libweb.zju.edu.cn/";
+    public const string LibraryWebsite = OpacParser.Website;
     public static void Apply(AppData data, string source, string account, List<AssistantEntry> entries, DateTime now)
     {
-        if (source is not ("courses" or "library" or "pintia") || entries.Count > 20000 || entries.Any(e => string.IsNullOrEmpty(e.Key) || e.Key.Length > 300 || e.Due is DateTime date && (date.Year < 2000 || date.Year > 2200) || string.IsNullOrWhiteSpace(e.Title) || e.Title.Length > 270 || !SafeUrl(e.Url))) throw new InvalidDataException("校园助手数据格式异常，保留上次记录。");
+        if (source is not ("courses" or "library" or "library-history" or "pintia") || entries.Count > 20000 || entries.Any(e => string.IsNullOrEmpty(e.Key) || e.Key.Length > 300 || e.Due is DateTime date && (date.Year < 2000 || date.Year > 2200) || string.IsNullOrWhiteSpace(e.Title) || e.Title.Length > 270 || !SafeUrl(e.Url))) throw new InvalidDataException("校园助手数据格式异常，保留上次记录。");
         if (entries.Select(e => e.Key).Distinct().Count() != entries.Count) throw new InvalidDataException("学校返回重复条目，未修改本地记录。");
-        var state = source == "courses" ? data.Assistant.Courses : source == "library" ? data.Assistant.Library : data.Assistant.Pintia;
+        var state = source == "courses" ? data.Assistant.Courses : source == "library" ? data.Assistant.Library : source == "library-history" ? data.Assistant.LibraryHistory : data.Assistant.Pintia;
+        // Historical loans are a separate snapshot. They never create or finish calendar tasks.
+        if (source == "library-history") { state.Entries = entries; state.Account = account; state.Updated = now; state.Status = $"读取成功，历史借阅 {entries.Count} 条"; return; }
         string prefix = source + ":" + account + ":";
         var present = new HashSet<string>();
         foreach (var entry in entries)
@@ -60,17 +67,17 @@ public static class AssistantMerge
         }
         // An authoritative library snapshot proves a book was returned. Missing coursework is not proof of submission.
         if (source == "library") foreach (var item in data.Items.Where(i => i.AssistantKey?.StartsWith(prefix, StringComparison.Ordinal) == true && !present.Contains(i.AssistantKey))) { item.Done = true; item.AssistantRemoteDone = true; }
-        state.Entries = entries; state.Account = account; state.Updated = now; state.Status = "更新成功";
+        state.Entries = entries; state.Account = account; state.Updated = now; state.Status = source == "library" ? $"读取成功，当前待归还 {entries.Count} 本" : "更新成功";
     }
     public static void Validate(AppData data)
     {
         var a = data.Assistant;
-        if (a == null || a.Courses == null || a.Library == null || a.Pintia == null || a.SignLog == null || a.SignAttempted == null || !Guid.TryParse(a.DeviceId, out _) || a.SignLog.Count > 100 || a.SignAttempted.Count > 100000) throw new InvalidDataException("校园助手缓存无效。");
-        foreach (var s in new[] { a.Courses, a.Library, a.Pintia })
+        if (a == null || a.Courses == null || a.Library == null || a.LibraryHistory == null || a.Pintia == null || a.SignLog == null || a.SignAttempted == null || !Guid.TryParse(a.DeviceId, out _) || a.SignLog.Count > 100 || a.SignAttempted.Count > 100000) throw new InvalidDataException("校园助手缓存无效。");
+        foreach (var s in new[] { a.Courses, a.Library, a.LibraryHistory, a.Pintia })
             if (s.Entries == null || s.Entries.Count > 20000 || s.Account == null || s.Entries.Any(e => e == null || string.IsNullOrEmpty(e.Key) || string.IsNullOrWhiteSpace(e.Title) || !SafeUrl(e.Url))) throw new InvalidDataException("校园助手条目无效。");
         var keys = data.Items.Where(i => i.AssistantKey != null).Select(i => i.AssistantKey).ToList();
         if (keys.Count != keys.Distinct().Count()) throw new InvalidDataException("校园助手存在重复关联。");
     }
-    public static bool SafeUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme == "https" && u.IsDefaultPort && string.IsNullOrEmpty(u.UserInfo) && new[] { "courses.zju.edu.cn", "m.lib.zju.edu.cn", "libweb.zju.edu.cn", "pintia.cn" }.Contains(u.Host);
+    public static bool SafeUrl(string url) => Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme == "https" && u.IsDefaultPort && string.IsNullOrEmpty(u.UserInfo) && new[] { "courses.zju.edu.cn", "m.lib.zju.edu.cn", "libweb.zju.edu.cn", "opac.zju.edu.cn", "pintia.cn" }.Contains(u.Host);
     public static void Log(AppData data, string message) { data.Assistant.SignLog.Add(DateTime.Now.ToString("MM-dd HH:mm:ss") + " · " + message); data.Assistant.SignLog = data.Assistant.SignLog.TakeLast(100).ToList(); }
 }

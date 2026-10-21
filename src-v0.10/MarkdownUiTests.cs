@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -7,7 +7,7 @@ using System.Windows.Documents;
 namespace Shike;
 public sealed partial class MainWindow
 {
-    void RunMarkdownUiTests(string dir, Action<bool,string> check, Action<Action,Action<Window>> modal, Action<Window,string> click)
+    void RunMarkdownUiTests(string dir, Action<bool,string> check, Action<Action,Action<AppPanel>> modal, Action<FrameworkElement,string> click)
     {
         const string source = "# 线性代数\n\n**重点**与*推导*\n\n- [x] 阅读\n- [ ] 习题\n\n> 课堂记录\n\n| 概念 | 说明 |\n| --- | --- |\n| 矩阵 | 线性映射 |\n\n```python\nprint(1)\n```\n\n$$\n\\frac{a}{b}\n$$\n\n[官网](https://www.zju.edu.cn)\n";
         modal(() => EditKnowledgeNote(null, true), window =>

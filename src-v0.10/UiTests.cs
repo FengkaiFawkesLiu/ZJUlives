@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,24 +21,46 @@ public sealed partial class MainWindow
             foreach (var descendant in Visuals<T>(child)) yield return descendant;
         }
     }
+    static void WaitForPanelLayout()
+    {
+        var frame=new DispatcherFrame(); var timer=new DispatcherTimer { Interval=TimeSpan.FromMilliseconds(550) };
+        timer.Tick+=(_,_)=>{timer.Stop();frame.Continue=false;}; timer.Start(); Dispatcher.PushFrame(frame);
+    }
     public void RunUiTests(string dir)
     {
         var results = new List<string>();
         void Check(bool condition, string text) { results.Add((condition ? "PASS " : "FAIL ") + text); File.WriteAllLines(Path.Combine(dir, "ui-test-results.txt"), results); if (!condition) throw new Exception(text); }
-        void Modal(Action invoke, Action<Window> operate)
+        void Modal(Action invoke, Action<AppPanel> operate)
         {
             Exception? error = null; bool operated = false;
             var pending = Dispatcher.BeginInvoke(new Action(() =>
             {
-                var dialog = OwnedWindows.Cast<Window>().Last();
-                try { operated = true; dialog.UpdateLayout(); operate(dialog); }
+                var dialog = Workspace.Panels.Last();
+                try { operated = true; WaitForPanelLayout(); dialog.UpdateLayout(); operate(dialog); }
                 catch (Exception ex) { error = ex; dialog.Tag = "test-abort"; dialog.Close(); }
             }), DispatcherPriority.ApplicationIdle);
             invoke(); if (!operated) { pending.Abort(); throw new Exception("Test dialog did not open synchronously"); } if (error != null) throw error;
         }
-        void Click(Window window, string label) => Visuals<Button>(window).First(b => b.Content is string s && s == label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        void Click(FrameworkElement window, string label) => Visuals<Button>(window).First(b => b.Content is string s && s == label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         try
         {
+            if (Environment.GetCommandLineArgs().Contains("--graph-glass-only")) { RunGraphGlassTests(dir,Check); return; }
+            if (Environment.GetCommandLineArgs().Contains("--note-focus-only")) { RunNoteFocusTests(dir,Check,Modal,Click); return; }
+            if (Environment.GetCommandLineArgs().Contains("--inline-only")) { RunInlinePanelTests(dir,Check,Modal,Click); return; }
+            if (Environment.GetCommandLineArgs().Contains("--navigation-only")) { RunNavigationTests(dir, Check); return; }
+            if (Environment.GetCommandLineArgs().Contains("--obsidian-only")) {
+                store.Data.Items.Add(new Item { Kind="笔记", Title="导出界面测试", Note="测试正文" });
+                SwitchView("笔记与附件"); UpdateLayout();
+                Check(Visuals<Button>(this).Count(b => b.Content is string s && s == "Obsidian") == 1, "One Obsidian entry on notes page");
+                Theme.Screenshot((FrameworkElement)Content, Path.Combine(dir,"obsidian-notes.png"));
+                Modal(ShowObsidian, window => {
+                    Check(Visuals<ComboBox>(window).Single().SelectedIndex == 0,"Export defaults to current library");
+                    Click(window,"导出所选笔记库"); window.UpdateLayout();
+                    Check(Directory.GetFiles(ObsidianBridge.Vault(store),"*.md",SearchOption.AllDirectories).Length == 1,"UI exports selected library");
+                    Theme.Screenshot((FrameworkElement)window.Content,Path.Combine(dir,"obsidian-dialog.png"));
+                    window.Close();
+                }); return;
+            }
             if (Environment.GetCommandLineArgs().Contains("--floating-only")) { RunFloatingFormulaTests(dir, Check, Modal, Click); return; }
             SetFullScreen(true); UpdateLayout();
             Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
@@ -84,14 +106,14 @@ public sealed partial class MainWindow
             Modal(() => Edit(null, "笔记"), window => { Click(window, "取消"); });
             Check(store.Data.Items.Count == 1, "Cancel editor leaves database unchanged");
             Modal(() => Edit(null, "待办", DateTime.Today.AddHours(18)), window => { Visuals<TextBox>(window).First(t => t.MaxLength == 300).Text = "整理面试材料"; Click(window, "保存"); });
-            SwitchView("待办清单"); UpdateLayout();
+            SwitchView("其他"); UpdateLayout();
             var checkbox = Visuals<CheckBox>(body).First(); checkbox.IsChecked = true; checkbox.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
             Check(store.Data.Items.Single(i => i.Kind == "待办").Done, "Task checkbox marks task complete and persists");
             Modal(() => Edit(null, "笔记"), window => { Visuals<TextBox>(window).First(t => t.MaxLength == 300).Text = "面试复盘"; Visuals<RichTextBox>(window).Single().Document.Blocks.Add(new System.Windows.Documents.Paragraph(new System.Windows.Documents.Run("下次准备更充分。"))); Click(window, "保存"); });
             SwitchView("笔记与附件"); UpdateLayout(); Check(Visuals<TextBlock>(body).Any(t => t.Text == "面试复盘"), "Independent note appears in notes view");
             SwitchView("今日概览"); search.Text = "改期"; UpdateLayout(); Check(Visuals<TextBlock>(body).Any(t => t.Text == "改期后的社团面试"), "Search finds event across dates");
             foreach (var name in views) { SwitchView(name); UpdateLayout(); Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle); }
-            Check(true, "All nine navigation destinations render with actual persisted data");
+            Check(true, "All navigation destinations render with actual persisted data");
             assistantTab = 3; SwitchView("校园助手"); UpdateLayout();
             Check(Visuals<CheckBox>(body).Any(c => c.Content is string text && text.Contains("每次启动") && c.IsChecked == true), "Startup refresh preference visible and enabled by default");
             Modal(SchoolDialog, window =>
@@ -117,15 +139,15 @@ public sealed partial class MainWindow
                 // Simulate a completed background update while the details dialog is open.
                 locked.Location = "学校更新后的教室"; locked.Start = locked.Start.AddMinutes(10);
                 Theme.Screenshot((FrameworkElement)window.Content, Path.Combine(dir, "课程只读详情.png"));
-                Click(window, "保存备注");
+                Click(window, "关闭");
             });
             Check(locked.Note == "课前准备" && locked.Location == "学校更新后的教室" && locked.Start.Minute == 10 && !locked.LocalOverride, "Saving note preserves newest school fields and does not create override");
-            void RespondToDelete(Window course, string response)
+            void RespondToDelete(AppPanel course, string response)
             {
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    var confirmation = course.OwnedWindows.Cast<Window>().Single();
-                    confirmation.UpdateLayout();
+                    var confirmation = course.OwnedPanels.Single();
+                    WaitForPanelLayout(); confirmation.UpdateLayout();
                     Check(Visuals<Button>(confirmation).Any(b => b.IsDefault && (string)b.Content == "保留课程"), "Deletion confirmation defaults to keeping the course");
                     Click(confirmation, response);
                 }), DispatcherPriority.ApplicationIdle);

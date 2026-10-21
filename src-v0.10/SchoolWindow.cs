@@ -23,8 +23,8 @@ public sealed partial class MainWindow
         auto.Click += (_, _) => Commit(() => store.Data.Settings.AutoSyncOnStartup = auto.IsChecked == true);
         p.Children.Add(Card(Stack(Text("连接浙大本科教务", 23, bold: true), Space(12), Text("课程与考试，带回你的本地日历。", 15, Muted), Space(15), schoolFreshness, Space(16), Row(sync, connect, Button("打开教务网站", () => Process.Start(new ProcessStartInfo("https://zdbk.zju.edu.cn/") { UseShellExecute = true }))), Space(12), auto, Text(Vault.Exists ? "账号密码已在本机加密保存（Windows 当前用户保护）。" : "当前未保存账号密码。首次连接后，不保存密码则启动时请你登录更新。", 12, Muted), Space(10), Row(Button("测试本机加密", () =>
         {
-            try { CredentialVault.Probe(); MessageBox.Show(this, "Windows 当前用户的加密与解密验证成功。测试没有使用或保存任何真实账号密码。", "本机加密验证"); }
-            catch { MessageBox.Show(this, "当前 Windows 用户环境无法使用系统加密。不会退回明文保存；你仍可以不保存密码，每次手动登录。", "本机加密不可用"); }
+            try { CredentialVault.Probe(); UiMessage.Show(this, "Windows 当前用户的加密与解密验证成功。测试没有使用或保存任何真实账号密码。", "本机加密验证"); }
+            catch { UiMessage.Show(this, "当前 Windows 用户环境无法使用系统加密。不会退回明文保存；你仍可以不保存密码，每次手动登录。", "本机加密不可用"); }
         }))), "#EDF3E9", 25));
         p.Children.Add(Card(Stack(Text("学校数据如何更新", 18, bold: true), Space(12), Text("• 只向学校发送登录与读取请求，没有上传你的笔记、附件或个人日程。\n• 账号密码保存由你选择；密文受当前 Windows 用户保护，不放入导出备份。\n• 更新失败时保留本地数据，不把失败时间显示为成功更新时间。\n• 更新冲突保留双方内容；需要验证码时请进入“账号与连接”。\n• 导入地点包含教务接口的教室和校区；缺失时显示待公布。", 13))));
         var holidayToggle = new CheckBox { Content = "应用校本部放假与调补课规则", IsChecked = store.Data.Settings.ApplyAcademicHolidays };
@@ -36,7 +36,7 @@ public sealed partial class MainWindow
     }
     void SchoolDialog()
     {
-        if (syncBusy) { MessageBox.Show(this, "正在更新学校数据，请稍候。"); return; }
+        if (syncBusy) { UiMessage.Show(this, "正在更新学校数据，请稍候。"); return; }
         var dialog = Dialog(this, "浙大本科教务 · 本地连接", 770, 830);
         var outer = new DockPanel { Margin = new Thickness(24) }; dialog.Content = outer;
         var status = Text("请确认以下学期参数。课表周次以你填写的第一周周一为基准。", 12, Muted); status.Margin = new Thickness(0, 10, 0, 0);
@@ -130,8 +130,8 @@ public sealed partial class MainWindow
                         syncStatus = "已成功读取并保存课程、考试和地点。";
                         dialog.Close();
                         if (summary!.Conflicts > 0)
-                        { SwitchView("冲突与提醒"); tray?.ShowBalloonTip(8000, "学校更新存在冲突", "已保留你的安排，请选择采用学校安排或保留本地修改。", System.Windows.Forms.ToolTipIcon.Warning); MessageBox.Show(this, "学校更新与你的本地修改存在冲突，已保留双方内容。请在“冲突与提醒”中处理。", "学校更新提醒"); }
-                        else { Render(); MessageBox.Show(this, $"已保存到本地。新增 {summary.Added} 项，更新 {summary.Updated} 项。"); }
+                        { SwitchView("冲突与提醒"); tray?.ShowBalloonTip(8000, "学校更新存在冲突", "已保留你的安排，请选择采用学校安排或保留本地修改。", System.Windows.Forms.ToolTipIcon.Warning); UiMessage.Show(this, "学校更新与你的本地修改存在冲突，已保留双方内容。请在“冲突与提醒”中处理。", "学校更新提醒"); }
+                        else { Render(); UiMessage.Show(this, $"已保存到本地。新增 {summary.Added} 项，更新 {summary.Updated} 项。"); }
                     }
                 }, true));
             }

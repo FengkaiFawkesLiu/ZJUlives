@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -10,11 +10,13 @@ namespace Shike;
 
 public sealed partial class MainWindow
 {
-    void RenderCalendar(bool week)
+    void RenderCalendar(bool week) => body.Content = BuildCalendar(week);
+    UIElement BuildCalendar(bool week, bool showDate = true)
     {
-        var root = new DockPanel(); body.Content = root;
-        var bar = DateBar(week); DockPanel.SetDock(bar, Dock.Top); root.Children.Add(bar);
+        var root = new DockPanel();
+        if (showDate) { var bar = DateBar(week); DockPanel.SetDock(bar, Dock.Top); root.Children.Add(bar); }
         var legend = Row(Text("● 课程", 11, Kind("课程")), new Border { Width = 20 }, Text("● 考试", 11, Kind("考试")), new Border { Width = 20 }, Text("● 个人活动", 11, Kind("活动")), new Border { Width = 20 }, Text("点击日程可编辑 · 双击空白处添加", 11, Muted));
+        if (!showDate) { legend.Children.RemoveAt(legend.Children.Count - 1); legend.Children.RemoveAt(legend.Children.Count - 1); }
         legend.Margin = new Thickness(0, 0, 0, 15); DockPanel.SetDock(legend, Dock.Top); root.Children.Add(legend);
         var start = week ? Engine.Monday(date) : date.Date; int count = week ? 7 : 1;
         var headers = new Grid { Margin = new Thickness(0, 0, 17, 0) }; headers.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(49) });
@@ -25,16 +27,16 @@ public sealed partial class MainWindow
             var dayNotice = store.Data.Settings.ApplyAcademicHolidays ? AcademicCalendar.Day(d) : null;
             var header = Stack(text);
             if (dayNotice != null) { var badge = Text(dayNotice.Label, 10, Green, true); badge.HorizontalAlignment = HorizontalAlignment.Center; header.Children.Add(Space(4)); header.Children.Add(badge); }
-            var cell = new Border { Background = dayNotice != null ? Brush("#EEF3E8") : d == DateTime.Today ? Brush("#EAF3ED") : Brushes.White, Padding = new Thickness(4, 10, 4, 10), BorderBrush = Line, BorderThickness = new Thickness(0, 1, 1, 1), Child = header, ToolTip = dayNotice?.Detail }; Grid.SetColumn(cell, day + 1); headers.Children.Add(cell);
+            var cell = new Border { Background = dayNotice != null ? Brush("#50EEF3E8") : d == DateTime.Today ? Brush("#45EAF3ED") : GlassTheme.Surface, Padding = new Thickness(4, 10, 4, 10), BorderBrush = Line, BorderThickness = new Thickness(0, 1, 1, 1), Child = header, ToolTip = dayNotice?.Detail }; Grid.SetColumn(cell, day + 1); headers.Children.Add(cell);
         }
         DockPanel.SetDock(headers, Dock.Top); root.Children.Add(headers);
-        var grid = new Grid { Height = 1440, Background = Brushes.White }; grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(49) });
+        var grid = new Grid { Height = 1440, Background = GlassTheme.Surface }; grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(49) });
         var scale = new Canvas { Height = 1440, ClipToBounds = true };
         for (int h = 0; h < 24; h++) { var t = Text(h.ToString("00") + ":00", 10, Muted); Canvas.SetTop(t, h * 60 + 3); Canvas.SetLeft(t, 2); scale.Children.Add(t); } grid.Children.Add(scale);
         for (int day = 0; day < count; day++)
         {
             grid.ColumnDefinitions.Add(new ColumnDefinition()); DateTime current = start.AddDays(day);
-            var canvas = new Canvas { Height = 1440, ClipToBounds = true, Background = current == DateTime.Today ? Brush("#FBFDF9") : Brushes.White };
+            var canvas = new Canvas { Height = 1440, ClipToBounds = true, Background = current == DateTime.Today ? Brush("#18FBFDF9") : GlassTheme.Surface };
             Grid.SetColumn(canvas, day + 1); grid.Children.Add(canvas);
             var occurrences = On(current).ToList();
             void Paint()
@@ -86,5 +88,6 @@ public sealed partial class MainWindow
         }
         var scroll = new ScrollViewer { Content = grid, VerticalScrollBarVisibility = ScrollBarVisibility.Visible }; root.Children.Add(scroll);
         scroll.Loaded += (_, _) => scroll.ScrollToVerticalOffset(7 * 60);
+        return root;
     }
 }

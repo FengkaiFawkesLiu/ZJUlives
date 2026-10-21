@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace Shike;
 
 // School sessions live in memory. No HTTP bodies, tokens or credentials are logged.
-public sealed class CampusClient : IDisposable
+public sealed partial class CampusClient : IDisposable
 {
     const string Cas = "https://zjuam.zju.edu.cn/cas/";
     const string Courses = "https://courses.zju.edu.cn";
@@ -29,18 +29,20 @@ public sealed class CampusClient : IDisposable
     public List<string> CourseWarnings { get; } = new();
     public string Stage { get; private set; } = "学校连接";
     public string Account { get; private set; } = "";
-    public CampusClient() { http = new HttpClient(new HttpClientHandler { CookieContainer = cookies, AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(25) }; Configure(); }
+    // All destinations are exact university hosts. Campus routes must not be sent
+    // through a desktop web proxy; OS-level campus VPN routing still applies.
+    public CampusClient() { http = new HttpClient(new HttpClientHandler { CookieContainer = cookies, AllowAutoRedirect = false, UseProxy = false }) { Timeout = TimeSpan.FromSeconds(25) }; Configure(); }
     internal CampusClient(HttpMessageHandler handler) { http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(25) }; Configure(); }
     void Configure() { http.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Shike/0.7.3"); }
     // Older school redirects can advertise HTTP for an endpoint that supports HTTPS.
     // Upgrade only exact known service hosts; never send credentials or tickets over HTTP.
     internal static Uri SecureServiceUri(Uri uri)
     {
-        if (uri.Scheme == "http" && uri.IsDefaultPort && string.IsNullOrEmpty(uri.UserInfo) && new[] { "zjuam.zju.edu.cn", "identity.zju.edu.cn", "courses.zju.edu.cn", "api.lib.zju.edu.cn" }.Contains(uri.Host))
+        if (uri.Scheme == "http" && uri.IsDefaultPort && string.IsNullOrEmpty(uri.UserInfo) && new[] { "zjuam.zju.edu.cn", "identity.zju.edu.cn", "courses.zju.edu.cn", "api.lib.zju.edu.cn", "opac.zju.edu.cn" }.Contains(uri.Host))
             return new UriBuilder(uri) { Scheme = "https", Port = -1 }.Uri;
         return uri;
     }
-    public static bool Allowed(Uri u) => u.Scheme == "https" && u.IsDefaultPort && string.IsNullOrEmpty(u.UserInfo) && new[] { "zjuam.zju.edu.cn", "identity.zju.edu.cn", "courses.zju.edu.cn", "api.lib.zju.edu.cn" }.Contains(u.Host);
+    public static bool Allowed(Uri u) => u.Scheme == "https" && u.IsDefaultPort && string.IsNullOrEmpty(u.UserInfo) && new[] { "zjuam.zju.edu.cn", "identity.zju.edu.cn", "courses.zju.edu.cn", "api.lib.zju.edu.cn", "opac.zju.edu.cn" }.Contains(u.Host);
     async Task<HttpResponseMessage> Send(HttpRequestMessage request, CancellationToken ct)
     {
         if (!Allowed(request.RequestUri!)) throw new InvalidDataException(Stage + "：尚未支持跳转主机 " + request.RequestUri!.Host + "（" + request.RequestUri.Scheme + "）。本地记录保留。");
@@ -78,7 +80,8 @@ public sealed class CampusClient : IDisposable
             }
             if (uri.Host == "courses.zju.edu.cn" && (Execution(html).Length > 0 || uri.AbsolutePath.Contains("/login", StringComparison.OrdinalIgnoreCase)))
                 throw new InvalidDataException("学在浙大：仍处于登录页面，尚未取得有效会话。");
-            var meta = Regex.Match(html, "<meta[^>]+content=[\"'][^\"']*?URL=([^\"'>]+)", RegexOptions.IgnoreCase);
+            // OPAC includes a commented-out, delayed logout refresh on every page.
+            var meta = Regex.Match(Regex.Replace(html, @"<!--.*?-->", "", RegexOptions.Singleline), "<meta[^>]+content=[\"']\\s*0\\s*;\\s*URL=([^\"'>]+)", RegexOptions.IgnoreCase);
             if (meta.Success) { uri = new Uri(uri, WebUtility.HtmlDecode(meta.Groups[1].Value)); continue; }
             if (libraryCallback) throw new InvalidDataException("图书馆需要额外认证，请在官方网站完成后重试。");
             return html;
@@ -116,7 +119,7 @@ public sealed class CampusClient : IDisposable
     }
     public async Task Login(SchoolCredential secret, CancellationToken ct)
     {
-        Stage = "统一身份认证"; credential = null; coursesReady = false; libraryToken = ""; borrower = "";
+        Stage = "统一身份认证"; credential = null; coursesReady = false; libraryToken = ""; borrower = ""; opacTargets = null;
         var html = await Follow(new Uri(Cas + "login"), ct);
         // The generic CAS success redirect may point at the university portal rather
         // than a service we use. Do not visit it or validate it as an API endpoint.
@@ -201,8 +204,17 @@ public sealed class CampusClient : IDisposable
     }
     public async Task<List<AssistantEntry>> FetchLibrary(CancellationToken ct)
     {
-        await EnsureLibrary(ct); Stage = "读取图书借阅";
-        return AssistantParser.Loans(await Json(Library + "/aleph/bor_info?bor_id=" + Uri.EscapeDataString(borrower), ct, library: true), DateTime.Now);
+        opacTargets = null;
+        await EnsureOpac(ct);
+        Stage = "读取当前待归还图书";
+        var entries = new List<AssistantEntry>();
+        foreach (var target in opacTargets!)
+        {
+            var page = OpacParser.Read(await Follow(target.Url, ct), target.Library, false);
+            if (page.Entries.Count != target.Count) throw new InvalidDataException("图书馆当前借阅数量与列表不一致，请重试；已有记录保留。");
+            entries.AddRange(page.Entries);
+        }
+        return entries;
     }
     public async Task Renew(string barcode, CancellationToken ct)
     {

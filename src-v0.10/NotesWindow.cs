@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -27,7 +27,7 @@ public sealed partial class MainWindow
         libraries.SelectedIndex = store.Data.NoteLibraries.IndexOf(library);
         libraries.SelectionChanged += (_, _) => { if (libraries.SelectedIndex >= 0) { noteLibraryId = store.Data.NoteLibraries[libraries.SelectedIndex].Id; Render(); } };
         var toolbar = Row(libraries, new Border { Width = 10 }, Button("＋ 笔记库", () => EditLibrary(null)), Button("库设置", () => EditLibrary(library)), Button(noteGraphView ? "思维导图" : "关系图谱", () => { noteGraphView = !noteGraphView; Render(); }), Button("＋ 新建笔记", () => EditKnowledgeNote(null), true), Button("Markdown 笔记", () => EditKnowledgeNote(null, true)));
-        toolbar.Margin = new Thickness(0, 0, 0, 16); DockPanel.SetDock(toolbar, Dock.Top); dock.Children.Add(toolbar);
+        toolbar.Margin = new Thickness(0, 0, 0, 16); var top = new DockPanel(); DockPanel.SetDock(top, Dock.Top); dock.Children.Add(top); var obsidian = Button("Obsidian", ShowObsidian); obsidian.VerticalAlignment = VerticalAlignment.Top; DockPanel.SetDock(obsidian, Dock.Right); top.Children.Add(obsidian); top.Children.Add(toolbar);
         var notes = store.Data.Items.Where(i => i.Kind == "笔记" && !i.Cancelled && i.LibraryId == library.Id).OrderByDescending(i => i.Modified).ToList();
         var query = search.Text.Trim();
         var filtered = notes.Where(n => (n.Title + " " + n.Note).Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -58,8 +58,8 @@ public sealed partial class MainWindow
         var items = new CheckBox { Content = "允许关联待办、考试、个人活动与校园活动", IsChecked = existing?.AllowItems ?? true };
         dialog.Content = new Border { Padding = new Thickness(25), Child = Stack(Text("为一组想法留个空间", 22, bold: true), Space(20), Field("笔记库名称", name), courses, items, Space(12), Text("每个库独立管理笔记和图谱。关闭关联类别只隐藏相关连接，不删除已有关系。", 12, Muted), Space(22), Row(Button("取消", () => dialog.Close()), Button("保存笔记库", () =>
         {
-            if (string.IsNullOrWhiteSpace(name.Text)) { MessageBox.Show(dialog, "请填写笔记库名称。"); return; }
-            if (store.Data.NoteLibraries.Any(l => l.Id != existing?.Id && l.Name == name.Text.Trim())) { MessageBox.Show(dialog, "笔记库名称已存在。"); return; }
+            if (string.IsNullOrWhiteSpace(name.Text)) { UiMessage.Show(dialog, "请填写笔记库名称。"); return; }
+            if (store.Data.NoteLibraries.Any(l => l.Id != existing?.Id && l.Name == name.Text.Trim())) { UiMessage.Show(dialog, "笔记库名称已存在。"); return; }
             var library = existing ?? new NoteLibrary();
             if (Commit(() => { library.Name = name.Text.Trim(); library.AllowCourses = courses.IsChecked == true; library.AllowItems = items.IsChecked == true; if (existing == null) store.Data.NoteLibraries.Add(library); })) { noteLibraryId = library.Id; dialog.Close(); Render(); }
         }, true))) };
@@ -104,7 +104,7 @@ public sealed partial class MainWindow
         }
         dialog.Content = new ScrollViewer { Content = panel }; dialog.ShowDialog();
     }
-    void ChooseNoteLinks(Window owner, Item draft, NoteLibrary library, string category, Action changed)
+    void ChooseNoteLinks(FrameworkElement owner, Item draft, NoteLibrary library, string category, Action changed)
     {
         var dialog = Dialog(owner, "选择关联", 700, 660);
         var dock = new DockPanel { Margin = new Thickness(24) }; dialog.Content = dock;
@@ -135,33 +135,62 @@ public sealed partial class MainWindow
         var library = original == null && template == null ? CurrentLibrary : store.Data.NoteLibraries.First(l => l.Id == (original ?? template)!.LibraryId);
         var draft = original?.Copy() ?? template?.Copy() ?? new Item { Kind = "笔记", LibraryId = library.Id, Reminders = new() };
         markdown = markdown || draft.NoteFormat == MarkdownNotes.Format;
-        var dialog = Dialog(this, "笔记 · " + library.Name, markdown ? 1380 : 1120, 830); dialog.MinWidth = 900;
-        var dock = new DockPanel { Margin = new Thickness(24) }; dialog.Content = dock;
+        var dialog = Dialog(this, "笔记 · " + library.Name, markdown ? 1380 : 1120, 830); dialog.MinimumContentWidth = 550; dialog.FocusWorkspace = true; NoteEditorUi.Install(dialog);
+        var dock = new DockPanel { Margin = new Thickness(18) }; dialog.Content = dock;
         bool dirty = false, closing = false; var openedModified = original?.Modified;
-        var status = Text("保存在本地 · " + library.Name, 12, Muted);
-        var actions = new DockPanel { Margin = new Thickness(0, 16, 0, 0) }; DockPanel.SetDock(actions, Dock.Bottom); dock.Children.Add(actions);
-        var title = new TextBox { Text = draft.Title, FontSize = 23, MaxLength = 300, Margin = new Thickness(0, 0, 0, 14) }; DockPanel.SetDock(title, Dock.Top); dock.Children.Add(title);
-        var grid = new Grid(); grid.ColumnDefinitions.Add(new()); grid.ColumnDefinitions.Add(new() { Width = new GridLength(265) }); dock.Children.Add(grid);
-        var editorDock = new DockPanel { Margin = new Thickness(0, 0, 18, 0) }; grid.Children.Add(editorDock);
+        var status = Text("保存在本地", 11, Muted);
+        var actions = new DockPanel { Margin = new Thickness(0,0,0,15) }; DockPanel.SetDock(actions, Dock.Top); dock.Children.Add(actions);
+        var grid = new Grid(); dock.Children.Add(GraphGlass.Panel(grid));
+        var editorDock = new DockPanel(); grid.Children.Add(editorDock);
+        var title = new TextBox { Text = draft.Title, FontFamily=new FontFamily("Microsoft YaHei UI"), Foreground=Ink, FontSize = 29, FontWeight = FontWeights.SemiBold, MaxLength = 300, Background = Brushes.Transparent, BorderThickness = new Thickness(0), FocusVisualStyle = null, Padding = new Thickness(0) };
+        var titleColumn=new Border { Child=Stack(Text(library.Name+" / 学习记录",11,Muted),Space(14),title),HorizontalAlignment=HorizontalAlignment.Center,Padding=new Thickness(24,38,24,18) };
+        var titleSurface=new Border { Background=NoteEditorUi.Paper,Child=titleColumn };
         INoteCodec codec = new RichNoteCodec();
-        var editor = new RichTextBox { Background = Brushes.White, BorderBrush = Line, BorderThickness = new Thickness(1), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, AcceptsTab = true };
+        var editor = new RichTextBox { Background = NoteEditorUi.Paper, FocusVisualStyle = null, BorderThickness = new Thickness(0), SelectionBrush = Brush("#80A3BDA7"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, AcceptsTab = true };
         try { editor.Document = codec.Decode(draft.NoteFormat is "rtf-v1" or "rtf-v2" ? draft.NoteBody : "", draft.Note); editor.Document.Foreground = Ink; }
-        catch (Exception ex) { MessageBox.Show(this, "笔记正文格式无法读取，已停止打开以保护原数据：" + ex.Message); return; }
-        var tools = new WrapPanel { Margin = new Thickness(0, 0, 0, 12) }; DockPanel.SetDock(tools, Dock.Top); editorDock.Children.Add(tools); editorDock.Children.Add(editor);
-        void Tool(string label, Action action) { var b = Button(label, action); b.Focusable = false; b.Padding = new Thickness(10, 7, 10, 7); b.Margin = new Thickness(0, 0, 6, 5); tools.Children.Add(b); }
+        catch (Exception ex) { UiMessage.Show(this, "笔记正文格式无法读取，已停止打开以保护原数据：" + ex.Message); return; }
+        var tools = new WrapPanel { Margin = new Thickness(14,11,14,11) }; DockPanel.SetDock(tools, Dock.Top); editorDock.Children.Add(tools);
+        var paragraphType=Combo(new[]{"正文","标题","引用"},"正文");paragraphType.Width=78;NoteEditorUi.AnimateMenu(paragraphType);tools.Children.Add(paragraphType);
+        tools.Children.Add(new Border { Width=1,Height=18,Background=Brush("#30607D60"),Margin=new Thickness(7,0,7,0) });
+        paragraphType.SelectionChanged+=(_,_)=>{if(paragraphType.SelectedIndex==1){editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty,24.0);editor.Selection.ApplyPropertyValue(TextElement.FontWeightProperty,FontWeights.SemiBold);}else {editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty,16.0);editor.Selection.ApplyPropertyValue(TextElement.FontWeightProperty,FontWeights.Normal);}editor.Focus();};
+        var extraTools = new WrapPanel { Visibility=Visibility.Collapsed, Margin=new Thickness(8,0,8,8), Name="NoteInsertTools" }; DockPanel.SetDock(extraTools,Dock.Top); editorDock.Children.Add(extraTools);
+        var formatTools = new StackPanel { Visibility=Visibility.Collapsed, Margin=new Thickness(8,0,8,8), Name="NoteFormatTools" }; DockPanel.SetDock(formatTools,Dock.Top); editorDock.Children.Add(formatTools);
+        var extraFormatting = new WrapPanel(); formatTools.Children.Add(extraFormatting);
+        var legacyFormatting=new WrapPanel();
+        DockPanel.SetDock(titleSurface,Dock.Top); editorDock.Children.Add(titleSurface); editorDock.Children.Add(editor);
+        void Tool(string label, Action action)
+        {
+            var b=Button(label,action); b.Focusable=false;b.Padding=new Thickness(8,5,8,5);b.Margin=new Thickness(0,0,4,0); b.Background=Brushes.Transparent;b.BorderThickness=new Thickness(0);b.ToolTip=label;
+            if(label is "粗体" or "斜体" or "下划线")
+            {
+                var text=Text(label=="粗体"?"B":label=="斜体"?"I":"U",16);
+                text.FontFamily=new FontFamily("Segoe UI");text.Width=18;text.TextAlignment=TextAlignment.Center;
+                text.FontWeight=label=="粗体"?FontWeights.SemiBold:FontWeights.Normal;
+                if(label=="斜体") { text.FontFamily=new FontFamily("Cambria");text.FontStyle=FontStyles.Italic; }
+                if(label=="下划线")text.TextDecorations=TextDecorations.Underline;
+                b.Content=text;System.Windows.Automation.AutomationProperties.SetName(b,label);
+                if(label=="斜体") b.Content=new System.Windows.Shapes.Path { Data=Geometry.Parse("M 6,2 L 14,2 M 2,16 L 10,16 M 12,2 L 4,16"),Stroke=Ink,StrokeThickness=1.6,Width=18,Height=20,Stretch=Stretch.None,VerticalAlignment=VerticalAlignment.Center };
+                b.Height=34;
+            }
+            if(label is "粗体" or "斜体" or "下划线" or "项目符号" or "撤销" or "重做")tools.Children.Add(b);
+            else if(label is "标题" or "正文" or "编号" or "排版")legacyFormatting.Children.Add(b);
+            else extraTools.Children.Add(b);
+            if(label is "项目符号" or "撤销" or "重做"){b.Content=NoteEditorUi.Icon(label=="项目符号"?"list":label=="撤销"?"undo":"redo");b.Width=34;b.Height=34;System.Windows.Automation.AutomationProperties.SetName(b,label);}
+        }
         Tool("粗体", () => EditingCommands.ToggleBold.Execute(null, editor)); Tool("斜体", () => EditingCommands.ToggleItalic.Execute(null, editor)); Tool("下划线", () => EditingCommands.ToggleUnderline.Execute(null, editor));
+        tools.Children.Add(new Border { Width=1,Height=18,Background=Brush("#30607D60"),Margin=new Thickness(7,0,7,0) });
         Tool("标题", () => { editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, 24.0); editor.Selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Bold); editor.Focus(); });
         Tool("正文", () => { editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, 15.0); editor.Selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal); editor.Focus(); });
         Tool("项目符号", () => EditingCommands.ToggleBullets.Execute(null, editor)); Tool("编号", () => EditingCommands.ToggleNumbering.Execute(null, editor));
         Tool("撤销", () => { if (editor.CanUndo) editor.Undo(); }); Tool("重做", () => { if (editor.CanRedo) editor.Redo(); });
         Tool("插入图片", () =>
         {
-            var picker = new OpenFileDialog { Filter = "图片|*.png;*.jpg;*.jpeg;*.bmp", Title = "插入本地图片" }; if (picker.ShowDialog(dialog) != true) return;
+            var picker = new OpenFileDialog { Filter = "图片|*.png;*.jpg;*.jpeg;*.bmp", Title = "插入本地图片" }; if (picker.ShowDialog(this) != true) return;
             try {
                 using var stream = File.OpenRead(picker.FileName); var bitmap = new BitmapImage(); bitmap.BeginInit(); bitmap.CacheOption = BitmapCacheOption.OnLoad; bitmap.DecodePixelWidth = 1200; bitmap.StreamSource = stream; bitmap.EndInit(); bitmap.Freeze();
                 var picture = new System.Windows.Controls.Image { Source = bitmap, Width = Math.Min(520, bitmap.PixelWidth), Stretch = Stretch.Uniform };
                 new InlineUIContainer(picture, editor.CaretPosition); dirty = true;
-            } catch (Exception ex) { MessageBox.Show(dialog, "图片无法插入：" + ex.Message); }
+            } catch (Exception ex) { UiMessage.Show(dialog, "图片无法插入：" + ex.Message); }
         });
         Tool("排版", () => EditTypography(dialog, editor, () => { dirty = true; status.Text = "排版已修改 · 保存后生效"; }));
         Tool("数学公式", () => EditFormula(dialog, editor));
@@ -172,7 +201,17 @@ public sealed partial class MainWindow
             while (target != null && target is not System.Windows.Controls.Image) target = target is Visual ? VisualTreeHelper.GetParent(target) : null;
             if (target is System.Windows.Controls.Image image && image.Tag is NoteEmbed embed) { e.Handled = true; if (embed.Kind == "math") EditFormula(dialog, editor, image); else if (embed.Kind == "ink") EditHandwriting(dialog, editor, image); }
         };
-        var side = new StackPanel(); var sideScroll = new ScrollViewer { Content = side }; Grid.SetColumn(sideScroll, 1); grid.Children.Add(sideScroll);
+        var side = new StackPanel(); var sideScroll = new ScrollViewer { Content = side, VerticalScrollBarVisibility=ScrollBarVisibility.Auto, FocusVisualStyle=null };
+        var sideFrame = new Border { Name="NoteRelations", Width=280, MaxHeight=600, HorizontalAlignment=HorizontalAlignment.Right, VerticalAlignment=VerticalAlignment.Top, Margin=new Thickness(0,8,8,0), Padding=new Thickness(18), CornerRadius=new CornerRadius(14), Background=Brush("#DFE9DC"), BorderBrush=GlassTheme.Edge, BorderThickness=new Thickness(1), Child=sideScroll, Visibility=Visibility.Collapsed };
+        Panel.SetZIndex(sideFrame,10);grid.Children.Add(sideFrame);
+        tools.Children.Add(new Border { Width=1,Height=18,Background=Brush("#30607D60"),Margin=new Thickness(7,0,7,0) });
+        tools.Children.Add(NoteEditorUi.Action("插入",()=>NoteEditorUi.Toggle(extraTools),"plus"));
+        tools.Children.Add(NoteEditorUi.Action("排版",()=>NoteEditorUi.Toggle(formatTools),"settings"));
+        var relatedButton=NoteEditorUi.Action("关联 · "+draft.NoteLinks.Count,()=>NoteEditorUi.Toggle(sideFrame)); DockPanel.SetDock(relatedButton,Dock.Right);actions.Children.Add(relatedButton);
+        var noteList=new StackPanel();noteList.Children.Add(Text(library.Name,13,bold:true));noteList.Children.Add(Space(16));
+        foreach(var peer in store.Data.Items.Where(i=>i.Kind=="笔记"&&i.LibraryId==library.Id&&!i.Cancelled).ToList()) {var entry=NoteEditorUi.Action(peer.Title,()=>{dialog.Close();if(dialog.IsClosed)EditKnowledgeNote(peer);});entry.HorizontalContentAlignment=HorizontalAlignment.Left;noteList.Children.Add(entry);}
+        var listFrame=new Border { Width=190,Padding=new Thickness(14),Background=Brush("#DFEBDD"),HorizontalAlignment=HorizontalAlignment.Left,VerticalAlignment=VerticalAlignment.Top,CornerRadius=new CornerRadius(16),Child=noteList,Visibility=Visibility.Collapsed,Margin=new Thickness(6) };Panel.SetZIndex(listFrame,11);grid.Children.Add(listFrame);
+        var listButton=NoteEditorUi.Action("笔记列表",()=>NoteEditorUi.Toggle(listFrame));DockPanel.SetDock(listButton,Dock.Right);actions.Children.Add(listButton);
         var links = new StackPanel(); var files = new StackPanel(); var staged = new Dictionary<Attachment, string>();
         void Mark() { dirty = true; status.Text = "有未保存的修改 · Ctrl+S 保存"; }
         MarkdownEditor? markdownEditor = null;
@@ -180,14 +219,25 @@ public sealed partial class MainWindow
         else
         {
             editorDock.Children.Remove(editor);
-            var formatting = NoteFormatting.TextTools(editor); DockPanel.SetDock(formatting, Dock.Top); editorDock.Children.Add(formatting);
+            var formatting = NoteFormatting.TextTools(editor);
+            if(formatting is WrapPanel all){foreach(var item in all.Children.OfType<Border>().Take(2).ToList()){all.Children.Remove(item);extraFormatting.Children.Add(item);}legacyFormatting.Children.Add(all);}
+            extraTools.Children.Add(NoteEditorUi.Action("更多文字格式",()=>NoteEditorUi.Toggle(legacyFormatting)));legacyFormatting.Visibility=Visibility.Collapsed;DockPanel.SetDock(legacyFormatting,Dock.Top);editorDock.Children.Insert(editorDock.Children.IndexOf(titleSurface),legacyFormatting);
             var formulaTools = NoteFormatting.FormulaTools(editor, Mark); DockPanel.SetDock(formulaTools, Dock.Top); editorDock.Children.Add(formulaTools);
-            try { paper = new NoteCanvas(editor, draft.NoteInk, Mark); } catch (Exception ex) { MessageBox.Show(this, "笔迹无法读取，已停止打开以保护数据：" + ex.Message); return; }
+            try { paper = new NoteCanvas(editor, draft.NoteInk, Mark); } catch (Exception ex) { UiMessage.Show(this, "笔迹无法读取，已停止打开以保护数据：" + ex.Message); return; }
+            var paperTone=Combo(new[]{"柔白","米白"},"柔白");paperTone.Width=70;
+            var widthChoice=Combo(new[]{"舒适","铺满"},"舒适");widthChoice.Width=64;extraFormatting.Children.Add(NoteEditorUi.Setting("正文宽度",widthChoice));
+            widthChoice.SelectionChanged+=(_,_)=>{paper.SetWide(widthChoice.SelectedIndex==1);};
+            extraFormatting.Children.Add(NoteEditorUi.Setting("纸面",paperTone));
+            paperTone.SelectionChanged+=(_,_)=>{var tone=(string)paperTone.SelectedItem=="米白"?Brush("#F5F0E4"):NoteEditorUi.Paper;paper.SetPaperBrush(tone);titleSurface.Background=tone;};
+            void AlignTitle() { titleColumn.Width=paper.Paper.Width;titleColumn.Padding=new Thickness(editor.Document.PagePadding.Left,38,editor.Document.PagePadding.Right,18); }
+            paper.SizeChanged+=(_,_)=>AlignTitle();paper.Paper.SizeChanged+=(_,_)=>AlignTitle();AlignTitle();
+            editorDock.Children.Remove(titleSurface);paper.SetHeader(titleSurface);
             editorDock.Children.Add(paper);
         }
-        if (!markdown) Tool("复制文字为 Markdown", () => { if (staged.Count > 0) { MessageBox.Show(dialog, "请先保存新添加的附件，再复制为 Markdown。"); return; } var copy = draft.Copy(); copy.Id = Guid.NewGuid().ToString("N"); copy.Title = title.Text + " · Markdown"; copy.NoteBody = codec.PlainText(editor.Document); copy.NoteFormat = MarkdownNotes.Format; copy.NoteInk = ""; EditKnowledgeNote(null, true, copy); });
+        if (!markdown) Tool("复制文字为 Markdown", () => { if (staged.Count > 0) { UiMessage.Show(dialog, "请先保存新添加的附件，再复制为 Markdown。"); return; } var copy = draft.Copy(); copy.Id = Guid.NewGuid().ToString("N"); copy.Title = title.Text + " · Markdown"; copy.NoteBody = codec.PlainText(editor.Document); copy.NoteFormat = MarkdownNotes.Format; copy.NoteInk = ""; EditKnowledgeNote(null, true, copy); });
         void DrawLinks()
         {
+            relatedButton.Content="关联 · "+draft.NoteLinks.Count;
             links.Children.Clear(); var targets = NotesModel.Targets(store.Data, library, draft.Id).ToDictionary(t => t.Key);
             foreach (var link in draft.NoteLinks.Where(l => NotesModel.Visible(l, library)).ToList())
             {
@@ -214,42 +264,45 @@ public sealed partial class MainWindow
                 var open = Button(a.Name, () =>
                 {
                     string path = staged.TryGetValue(a, out var local) ? local : Path.Combine(store.Files, a.File);
-                    if (new[] { ".exe", ".bat", ".cmd", ".ps1", ".js", ".vbs", ".msi", ".scr", ".com", ".lnk", ".url", ".hta" }.Contains(Path.GetExtension(path).ToLowerInvariant())) { MessageBox.Show(dialog, "程序或脚本附件请到数据文件夹检查后打开。"); return; }
-                    try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); } catch (Exception ex) { MessageBox.Show(dialog, ex.Message); }
+                    if (new[] { ".exe", ".bat", ".cmd", ".ps1", ".js", ".vbs", ".msi", ".scr", ".com", ".lnk", ".url", ".hta" }.Contains(Path.GetExtension(path).ToLowerInvariant())) { UiMessage.Show(dialog, "程序或脚本附件请到数据文件夹检查后打开。"); return; }
+                    try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); } catch (Exception ex) { UiMessage.Show(dialog, ex.Message); }
                 }); open.Content = Text(a.Name, 11); row.Children.Add(open); files.Children.Add(row);
             }
         }
-        DrawFiles(); side.Children.Add(Button("＋ 添加附件", () => { var picker = new OpenFileDialog { Multiselect = true }; if (picker.ShowDialog(dialog) == true) foreach (string file in picker.FileNames) { var a = new Attachment { Name = Path.GetFileName(file) }; draft.Attachments.Add(a); staged[a] = file; Mark(); } DrawFiles(); }));
+        DrawFiles(); side.Children.Add(Button("＋ 添加附件", () => { var picker = new OpenFileDialog { Multiselect = true }; if (picker.ShowDialog(this) == true) foreach (string file in picker.FileNames) { var a = new Attachment { Name = Path.GetFileName(file) }; draft.Attachments.Add(a); staged[a] = file; Mark(); } DrawFiles(); }));
         bool Save()
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(title.Text)) { MessageBox.Show(dialog, "请填写笔记标题。"); return false; }
+                if (string.IsNullOrWhiteSpace(title.Text)) { UiMessage.Show(dialog, "请填写笔记标题。"); return false; }
                 var current = original == null ? null : store.Data.Items.FirstOrDefault(i => i.Id == original.Id);
-                if (original != null && current == null) { MessageBox.Show(dialog, "原笔记已删除，请先复制正文保存。"); return false; }
-                if (current != null && current.Modified != openedModified) { MessageBox.Show(dialog, "笔记已在其他窗口更新，请先复制当前内容，关闭后重新打开，避免覆盖。"); return false; }
+                if (original != null && current == null) { UiMessage.Show(dialog, "原笔记已删除，请先复制正文保存。"); return false; }
+                if (current != null && current.Modified != openedModified) { UiMessage.Show(dialog, "笔记已在其他窗口更新，请先复制当前内容，关闭后重新打开，避免覆盖。"); return false; }
                 var updated = current?.Copy() ?? draft.Copy(); updated.Title = title.Text.Trim(); updated.Note = markdown ? MarkdownNotes.Plain(markdownEditor!.Source.Text) : codec.PlainText(editor.Document); updated.NoteBody = markdown ? markdownEditor!.Source.Text : codec.Encode(editor.Document); updated.NoteFormat = markdown ? MarkdownNotes.Format : codec.Format; updated.NoteInk = markdown ? draft.NoteInk : paper!.Encode(); updated.NoteLinks = draft.NoteLinks; updated.Modified = DateTime.Now;
                 foreach (var pair in staged.ToList()) { pair.Key.File = store.AddFile(pair.Value).File; staged.Remove(pair.Key); }
                 updated.Attachments = draft.Attachments;
                 if (!Commit(() => { if (current != null) store.Data.Items.Remove(current); store.Data.Items.Add(updated); NotesModel.SyncReciprocal(store.Data, updated); })) return false;
                 dirty = false; closing = true; dialog.Close(); return true;
             }
-            catch (Exception ex) { MessageBox.Show(dialog, "笔记未保存：" + ex.Message); return false; }
+            catch (Exception ex) { UiMessage.Show(dialog, "笔记未保存：" + ex.Message); return false; }
         }
-        var buttons = Row(Button("取消", () => dialog.Close()), Button("保存", () => Save(), true)); DockPanel.SetDock(buttons, Dock.Right); actions.Children.Add(buttons);
+        var saveButton=Button("保存",()=>Save(),true);saveButton.Padding=new Thickness(16,8,16,8);saveButton.Margin=new Thickness(6,0,0,0);DockPanel.SetDock(saveButton,Dock.Right);actions.Children.Insert(0,saveButton);
+        extraTools.Children.Add(NoteEditorUi.Action("取消",()=>dialog.Close()));
         if (original != null) { var delete = Button("删除笔记", () =>
         {
-            if (MessageBox.Show(dialog, "删除这篇笔记及其关联连线？其他笔记和课程将保留。", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
+            if (UiMessage.Show(dialog, "删除这篇笔记及其关联连线？其他笔记和课程将保留。", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
             if (Commit(() => { store.Data.Items.RemoveAll(i => i.Id == draft.Id); foreach (var n in store.Data.Items) { n.NoteLinks.RemoveAll(l => l.Key == "note:" + draft.Id); if (n.ParentId == draft.Id) n.ParentId = null; } library.Positions.Remove("note:" + draft.Id); })) { closing = true; dialog.Close(); }
-        }); DockPanel.SetDock(delete, Dock.Left); actions.Children.Add(delete); }
-        actions.Children.Add(status);
+        }); extraTools.Children.Add(delete); }
+        var breadcrumb=NoteEditorUi.Action("知识笔记  ›  "+library.Name,()=>dialog.Close());breadcrumb.Foreground=Muted;breadcrumb.HorizontalContentAlignment=HorizontalAlignment.Left;actions.Children.Add(breadcrumb);
+        var footer=Row(status,Text("   Ctrl + S 保存",11,Muted));footer.HorizontalAlignment=HorizontalAlignment.Right;
+        var footSurface=new Border { Background=NoteEditorUi.Paper,Padding=new Thickness(16,12,22,12),Child=footer };DockPanel.SetDock(footSurface,Dock.Bottom);editorDock.Children.Insert(0,footSurface);
         title.TextChanged += (_, _) => Mark(); editor.TextChanged += (_, _) => Mark();
         dialog.PreviewKeyDown += (_, e) => { if (e.Key == Key.M && Keyboard.Modifiers == ModifierKeys.Control) { if (markdown) markdownEditor!.Insert("\n$$\n", "\n$$\n", @"\frac{a}{b}"); else EditFormula(dialog, editor); e.Handled = true; }
             if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control) { Save(); e.Handled = true; } };
         dialog.Closing += (_, e) =>
         {
             if (closing || !dirty || preview && Equals(dialog.Tag, "test-abort")) return;
-            var answer = MessageBox.Show(dialog, "笔记有未保存的修改。是否放弃修改？", "离开笔记", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+            var answer = UiMessage.Show(dialog, "笔记有未保存的修改。是否放弃修改？", "离开笔记", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
             if (answer != MessageBoxResult.Yes) e.Cancel = true;
         };
         dialog.Loaded += (_, _) => { title.Focus(); dirty = false; }; dialog.ShowDialog();

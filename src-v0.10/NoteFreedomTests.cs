@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -13,7 +13,7 @@ using System.Windows.Media;
 namespace Shike;
 public sealed partial class MainWindow
 {
-    void RunNoteFreedomUiTests(string dir, Action<bool,string> check, Action<Action,Action<Window>> modal, Action<Window,string> click)
+    void RunNoteFreedomUiTests(string dir, Action<bool,string> check, Action<Action,Action<AppPanel>> modal, Action<FrameworkElement,string> click)
     {
         modal(() => EditKnowledgeNote(null), window =>
         {

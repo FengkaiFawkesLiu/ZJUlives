@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -127,7 +127,7 @@ public sealed partial class MainWindow
                     if (incoming != null) { CampusFeeds.Merge(store.Data, incoming); state.Updated = DateTime.Now; }
                     state.Status = status; store.Save();
                 }
-                catch (Exception ex) { store.Data = System.Text.Json.JsonSerializer.Deserialize<AppData>(before)!; if (!exiting) MessageBox.Show(this, "活动信息未保存：" + ex.Message); return; }
+                catch (Exception ex) { store.Data = System.Text.Json.JsonSerializer.Deserialize<AppData>(before)!; if (!exiting) UiMessage.Show(this, "活动信息未保存：" + ex.Message); return; }
                 if (view == "校园活动") Render();
             }
         }
@@ -169,7 +169,7 @@ public sealed partial class MainWindow
             }, true), Button("查看原文 ↗", () =>
             {
                 if (!CampusFeeds.SafeUrl(a.Url)) return;
-                try { Process.Start(new ProcessStartInfo(a.Url) { UseShellExecute = true }); } catch (Exception ex) { MessageBox.Show(this, ex.Message); }
+                try { Process.Start(new ProcessStartInfo(a.Url) { UseShellExecute = true }); } catch (Exception ex) { UiMessage.Show(this, ex.Message); }
             }));
             p.Children.Add(Card(Stack(Text(a.Category + "  /  " + a.Source, 11, Green), Space(10), Text(a.Title, 18, bold: true), Space(10), Text(when + "  ·  " + (a.Location.Length > 0 ? a.Location : "地点请查看原文"), 13, Green), Space(10), Text(a.Description, 12, Muted), Space(16), controls)));
         }

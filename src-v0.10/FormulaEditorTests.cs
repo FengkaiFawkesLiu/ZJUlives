@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,7 +14,9 @@ public static class FormulaEditorTests
     {
         Directory.CreateDirectory(dir); var log = new List<string>(); bool failed = false;
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown }; Theme.Install(app);
-        var window = new FormulaEditorWindow(null, "", false, Path.Combine(Path.GetTempPath(), "Shike-math-test-" + Guid.NewGuid().ToString("N")));
+        var host = new MainWindow(new Store(Path.Combine(Path.GetTempPath(), "Shike-formula-host-"+Guid.NewGuid().ToString("N"))), true);
+        app.MainWindow=host; host.Show();
+        var window = new FormulaEditorWindow(host, "", false, Path.Combine(Path.GetTempPath(), "Shike-math-test-" + Guid.NewGuid().ToString("N")));
         async Task Check(string label, string js) { var actual = await window.Script(js); if (actual != "true") throw new Exception(label + ": " + actual); log.Add("PASS " + label); File.WriteAllLines(Path.Combine(dir,"formula-test-results.txt"),log); }
         window.Loaded += async (_, _) =>
         {

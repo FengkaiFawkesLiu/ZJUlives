@@ -1,7 +1,7 @@
 {
-  "version": 4,
+  "version": 3,
   "targets": {
-    "net10.0-windows": {
+    "net10.0-windows7.0": {
       "Markdig/0.41.3": {
         "type": "package",
         "compile": {
@@ -214,37 +214,35 @@
     }
   },
   "projectFileDependencyGroups": {
-    "net10.0-windows": [
+    "net10.0-windows7.0": [
       "Markdig >= 0.41.3",
       "Microsoft.Web.WebView2 >= 1.0.3856.49",
       "WpfMath >= 2.1.0"
     ]
   },
   "packageFolders": {
-    "E:\\ZJUlives\\build-temp\\.nuget\\packages\\": {}
+    "E:\\ZJUlives\\ZJUlives\\build-temp\\.nuget\\packages": {}
   },
   "project": {
     "version": "0.10.0",
     "restore": {
-      "projectUniqueName": "E:\\ZJUlives\\src-v0.10\\Shike.csproj",
+      "projectUniqueName": "E:\\ZJUlives\\ZJUlives\\src-v0.10\\Shike.csproj",
       "projectName": "Shike",
-      "projectPath": "E:\\ZJUlives\\src-v0.10\\Shike.csproj",
-      "packagesPath": "E:\\ZJUlives\\build-temp\\.nuget\\packages\\",
-      "outputPath": "E:\\ZJUlives\\src-v0.10\\obj\\",
+      "projectPath": "E:\\ZJUlives\\ZJUlives\\src-v0.10\\Shike.csproj",
+      "packagesPath": "E:\\ZJUlives\\ZJUlives\\build-temp\\.nuget\\packages",
+      "outputPath": "E:\\ZJUlives\\ZJUlives\\src-v0.10\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "E:\\ZJUlives\\src-v0.10\\NuGet.Config",
-        "E:\\ZJUlives\\build-temp\\config\\NuGet\\NuGet.Config"
+        "E:\\ZJUlives\\ZJUlives\\src-v0.10\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net10.0-windows"
       ],
       "sources": {
-        "E:\\ZJUlives\\src-v0.10\\packages": {}
+        "E:\\ZJUlives\\ZJUlives\\src-v0.10\\packages": {}
       },
       "frameworks": {
-        "net10.0-windows": {
-          "framework": "net10.0-windows7.0",
+        "net10.0-windows7.0": {
           "targetAlias": "net10.0-windows",
           "projectReferences": {}
         }
@@ -259,11 +257,10 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.400"
+      "SdkAnalysisLevel": "10.0.100"
     },
     "frameworks": {
-      "net10.0-windows": {
-        "framework": "net10.0-windows7.0",
+      "net10.0-windows7.0": {
         "targetAlias": "net10.0-windows",
         "dependencies": {
           "Markdig": {
@@ -298,7 +295,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "E:\\ZJUlives\\ZJUlives\\build-temp\\sdk\\sdk\\10.0.100/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.CSharp": "(,4.7.32767]",
           "Microsoft.VisualBasic": "(,10.4.32767]",

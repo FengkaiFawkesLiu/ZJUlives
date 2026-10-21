@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -17,7 +17,7 @@ namespace Shike;
 public sealed partial class MainWindow
 {
     int assistantTab, assistantPage;
-    bool showPintia;
+    bool showPintia, showLibraryHistory;
     SchoolCredential? pintiaSession;
     CredentialVault PintiaVault => new(store.Root, true);
     bool assistantBusy, signBusy, signEnabled;
@@ -44,18 +44,18 @@ public sealed partial class MainWindow
             p.Children.Insert(1, Card(Stack(Text("校园助手连接", 20, bold: true), Space(10), Text("沿用学校统一身份认证账号。退出账号会清除全部课程与考试（含手动添加）、相关连线和本机自动历史备份中的对应数据；笔记、待办和其他活动保留。", 13, Muted), Space(12), Row(Button("管理共享账号", AssistantAccountDialog), Button("退出当前账号", ForgetCredentials)), Space(12), auto, Space(8), Text("自动签到每次启动后手动开启；关闭窗口收到托盘后仍可运行，退出程序则停止。", 12, Muted))));
             return;
         }
-        var source = assistantTab == 1 ? store.Data.Assistant.Library : showPintia ? store.Data.Assistant.Pintia : store.Data.Assistant.Courses;
+        var source = assistantTab == 1 ? (showLibraryHistory ? store.Data.Assistant.LibraryHistory : store.Data.Assistant.Library) : showPintia ? store.Data.Assistant.Pintia : store.Data.Assistant.Courses;
         assistantFreshness = Text(AssistantFreshness(source), 12, Muted);
         if (assistantTab < 2)
         {
             var refresh = Button(assistantBusy ? "正在更新…" : "立即更新", async () => await RefreshAssistant(true), true); refresh.IsEnabled = !assistantBusy && !signBusy;
-            p.Children.Add(Card(Stack(Text(assistantTab == 1 ? "让每本书如期归还" : "把截止日期放回日历", 23, bold: true), Space(10), Text(assistantTab == 1 ? "借阅到期自动加入待办和日历；续借后按学校返回的新日期更新。" : "合并课程作业、测验与课堂互动；保留个人备注，同步学校确认的提交状态。", 13, Muted), Space(14), Row(refresh, Button(Vault.Exists ? "使用已保存账号连接" : "连接账号", AssistantLogin), Button("打开官网", () => OpenAssistantUrl(assistantTab == 1 ? "https://libweb.zju.edu.cn/" : "https://courses.zju.edu.cn/"))), Space(12), assistantFreshness, Space(6), Text(assistantStatus, 12, Muted)), "#EDF3E9", 24));
+            p.Children.Add(Card(Stack(Text(assistantTab == 1 ? "我的图书借阅" : "把截止日期放回日历", 23, bold: true), Space(10), Text(assistantTab == 1 ? "查看当前待归还与历史借阅。当前图书的应还日期自动加入待办和日历，历史记录只供查阅。" : "合并课程作业、测验与课堂互动；保留个人备注，同步学校确认的提交状态。", 13, Muted), Space(14), Row(refresh, Button(Vault.Exists ? "使用已保存账号连接" : "连接账号", AssistantLogin), Button("打开官网", () => OpenAssistantUrl(assistantTab == 1 ? AssistantMerge.LibraryWebsite : "https://courses.zju.edu.cn/"))), Space(12), assistantFreshness, Space(6), Text(assistantStatus, 12, Muted)), "#EDF3E9", 24));
+            if (assistantTab == 1) { RenderLibraryLists(p, source); return; }
             if (assistantTab == 0)
             {
                 p.Children.Add(Row(Button("学在浙大", () => { showPintia = false; assistantPage = 0; Render(); }, !showPintia), Button("Pintia · 可选", () => { showPintia = true; assistantPage = 0; Render(); }, showPintia)));
-                if (showPintia) p.Children.Add(Card(Stack(Text("Pintia 截止事项", 18, bold: true), Space(8), Text("同步近 90 天以来截止的题目集；提交状态无法核实，请在待办中自行标记完成。Cookie 只用于连接 Pintia。", 12, Muted), Space(10), Row(Button("设置 Pintia", PintiaDialog), Button("断开并删除 Pintia 凭据", () => { try { PintiaVault.Forget(); pintiaSession = null; Commit(() => store.Data.Assistant.PintiaEnabled = false); } catch { MessageBox.Show(this, "本机凭据文件删除失败，请检查文件权限。"); } })))));
+                if (showPintia) p.Children.Add(Card(Stack(Text("Pintia 截止事项", 18, bold: true), Space(8), Text("同步近 90 天以来截止的题目集；提交状态无法核实，请在待办中自行标记完成。Cookie 只用于连接 Pintia。", 12, Muted), Space(10), Row(Button("设置 Pintia", PintiaDialog), Button("断开并删除 Pintia 凭据", () => { try { PintiaVault.Forget(); pintiaSession = null; Commit(() => store.Data.Assistant.PintiaEnabled = false); } catch { UiMessage.Show(this, "本机凭据文件删除失败，请检查文件权限。"); } })))));
             }
-            if (assistantTab == 1) p.Children.Add(Card(Stack(Text("官网与借阅同步", 16, bold: true), Space(8), Text("官网入口已改为浙大图书馆主站，可从主站进入“我的图书馆”。借阅同步使用单独接口；接口连接失败时保留已有记录，请先在官网查询或续借。", 12, Muted))));
             var entries = source.Entries.OrderBy(e => e.Complete).ThenBy(e => e.Due ?? DateTime.MaxValue).ToList();
             if (entries.Count == 0) p.Children.Add(Card(Stack(Text(source.Updated == null ? "连接后，事项会出现在这里" : "本次没有相关事项", 18, bold: true), Space(10), Text(source.Updated == null ? "账号密码可选本机加密保存。未设置截止日期的事项仅在这里展示，不会编造日历时间。" : "缓存仍可离线查看；接口失败不会清空已有内容。", 13, Muted))));
             assistantPage = Math.Min(assistantPage, Math.Max(0, (entries.Count - 1) / 40));
@@ -91,7 +91,7 @@ public sealed partial class MainWindow
         Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
     }
     static string AssistantFreshness(AssistantSource source) => Freshness.Format(source.Updated, DateTime.Now) + " · " + source.Status;
-    void RefreshAssistantLabel() { if (view == "校园助手" && assistantFreshness != null && assistantTab < 2) assistantFreshness.Text = AssistantFreshness(assistantTab == 1 ? store.Data.Assistant.Library : showPintia ? store.Data.Assistant.Pintia : store.Data.Assistant.Courses); }
+    void RefreshAssistantLabel() { if (view == "校园助手" && assistantFreshness != null && assistantTab < 2) assistantFreshness.Text = AssistantFreshness(assistantTab == 1 ? (showLibraryHistory ? store.Data.Assistant.LibraryHistory : store.Data.Assistant.Library) : showPintia ? store.Data.Assistant.Pintia : store.Data.Assistant.Courses); }
     void PaintAssistant() { if (!exiting && view == "校园助手") Render(); }
     static string AssistantError(Exception ex) => ex is InvalidDataException or CampusSessionExpiredException or CampusEndpointUnavailableException ? ex.Message : ex is System.Security.Cryptography.CryptographicException ? "本机共享账号无法解密，请在连接与设置中重新保存账号。" : ex is OperationCanceledException ? "请求已取消或超时，保留上次记录。" : ex is HttpRequestException ? "无法连接学校服务，请检查校园网络；上次数据已保留。" : "本次更新未完成，请重新连接；上次数据已保留。";
     void DisconnectAssistant()
@@ -180,7 +180,7 @@ public sealed partial class MainWindow
                 try { var credential = Vault.Read() ?? throw new InvalidDataException("请先连接学校账号。"); await client.Login(credential, token); token.ThrowIfCancellationRequested(); assistantClient = client; }
                 catch (Exception ex) {
                     client.Dispose(); token.ThrowIfCancellationRequested();
-                    Commit(() => { store.Data.Assistant.Courses.Status = AssistantError(ex); store.Data.Assistant.Library.Status = AssistantError(ex); });
+                    Commit(() => { store.Data.Assistant.Courses.Status = AssistantError(ex); store.Data.Assistant.Library.Status = AssistantError(ex); store.Data.Assistant.LibraryHistory.Status = AssistantError(ex); });
                 }
             }
             var active = assistantClient; bool anyFailure = active == null;
@@ -193,18 +193,24 @@ public sealed partial class MainWindow
                     Commit(() => {
                         AssistantMerge.Apply(store.Data, source, active!.Account, entries, DateTime.Now);
                         if (source == "courses" && active.CourseWarnings.Count > 0) store.Data.Assistant.Courses.Status = "已更新截止事项；" + string.Join("；", active.CourseWarnings);
+                        if (source == "library-history") {
+                            var history = store.Data.Assistant.LibraryHistory;
+                            history.TotalAvailable = active.LibraryHistoryTotal;
+                            if (history.TotalAvailable > entries.Count) history.Status = $"读取成功，官网展示 {entries.Count} / {history.TotalAvailable} 条历史记录；完整历史请咨询图书馆流通台";
+                        }
                     });
                 }
                 catch (Exception ex)
                 {
                     if (token.IsCancellationRequested || exiting) return;
                     anyFailure = true;
-                    Commit(() => (source == "courses" ? store.Data.Assistant.Courses : store.Data.Assistant.Library).Status = AssistantError(ex));
+                    Commit(() => (source == "courses" ? store.Data.Assistant.Courses : source == "library-history" ? store.Data.Assistant.LibraryHistory : store.Data.Assistant.Library).Status = AssistantError(ex));
                 }
             }
             if (active != null) {
                 await Fetch("courses", active.FetchCourses);
                 if (!token.IsCancellationRequested) await Fetch("library", active.FetchLibrary);
+                if (!token.IsCancellationRequested) await Fetch("library-history", active.FetchLibraryHistory);
             }
             if (!token.IsCancellationRequested && store.Data.Assistant.PintiaEnabled)
             {
@@ -223,8 +229,8 @@ public sealed partial class MainWindow
     {
         if (preview || assistantBusy || signBusy) return;
         if (assistantClient == null) { AssistantLogin(); return; }
-        if (assistantClient.Account != store.Data.Assistant.Library.Account) { MessageBox.Show(this, "请先更新当前账号的借阅列表。"); return; }
-        if (MessageBox.Show(this, "向图书馆申请续借《" + entry.Title + "》？", "确认续借", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        if (assistantClient.Account != store.Data.Assistant.Library.Account) { UiMessage.Show(this, "请先更新当前账号的借阅列表。"); return; }
+        if (UiMessage.Show(this, "向图书馆申请续借《" + entry.Title + "》？", "确认续借", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
         assistantBusy = true; var token = assistantCancel.Token; var client = assistantClient; bool accepted = false; PaintAssistant();
         try
         {
@@ -301,7 +307,7 @@ public sealed partial class MainWindow
     async Task AssistantTick()
     {
         RefreshAssistantLabel();
-        if (preview || exiting || OwnedWindows.Count > 0) return;
+        if (preview || exiting || Workspace.Panels.Count > 0) return;
         if (signEnabled && DateTime.Now >= signNext) await PollAssistantSign();
         if (store.Data.Assistant.AutoRefresh && DateTime.Now >= assistantNext) await RefreshAssistant(false);
     }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +13,7 @@ using static Shike.Theme;
 namespace Shike;
 public sealed partial class MainWindow
 {
-    void EditTypography(Window owner, RichTextBox editor, Action changed)
+    void EditTypography(FrameworkElement owner, RichTextBox editor, Action changed)
     {
         var dialog = Dialog(owner, "笔记排版", 560, 630); var layout = NoteTypography.Get(editor.Document);
         var font = Combo(new[] { "12", "14", "16", "18", "20", "24" }, layout.FontSize.ToString("0"));
@@ -48,7 +48,7 @@ public sealed partial class MainWindow
         editor.Focus();
     }
     static RoutedEvent TextBoxBaseTextChanged() => System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent;
-    void EditFormulaLegacy(Window owner, RichTextBox editor, Image? existing = null, string? sourceOverride = null)
+    void EditFormulaLegacy(FrameworkElement owner, RichTextBox editor, Image? existing = null, string? sourceOverride = null)
     {
         var dialog = Dialog(owner, "数学公式", 820, 650); var source = new TextBox { Text = sourceOverride ?? (existing?.Tag as NoteEmbed)?.Source ?? @"\frac{a}{b}", AcceptsReturn = true, MinHeight = 90, TextWrapping = TextWrapping.Wrap, MaxLength = 1500 };
         var preview = new ContentControl { MinHeight = 110, HorizontalContentAlignment = HorizontalAlignment.Center, VerticalContentAlignment = VerticalAlignment.Center }; var error = Text("", 12, Brush("#AF653A"));
@@ -65,11 +65,11 @@ public sealed partial class MainWindow
         dialog.Content = new Border { Padding = new Thickness(24), Child = Stack(Text("数学公式", 24, bold: true), Space(8), Text("点击模板快速输入，替换花括号内的内容。使用 LaTeX 数学语法，本地离线排版；不支持文档导言区或额外宏包。", 12, Muted), Space(14), templates, symbols, Space(12), source, Space(12), new Border { Background = Brushes.White, CornerRadius = new CornerRadius(10), Padding = new Thickness(8), Child = new ScrollViewer { Content = preview, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 160 } }, error, Space(14), Row(Button("取消", () => dialog.Close()), insert)) };
         dialog.ShowDialog();
     }
-    void EditHandwriting(Window owner, RichTextBox editor, Image? existing = null)
+    void EditHandwriting(FrameworkElement owner, RichTextBox editor, Image? existing = null)
     {
         var dialog = Dialog(owner, "本地手写板", 1010, 730);
         var ink = new InkCanvas { Width = 900, Height = 480, Background = Brushes.White, DefaultDrawingAttributes = new DrawingAttributes { Color = Colors.DarkSlateGray, Width = 3, Height = 3, FitToCurve = true }, EditingMode = InkCanvasEditingMode.Ink };
-        if (existing?.Tag is NoteEmbed previous) { try { using var stream = new MemoryStream(Convert.FromBase64String(previous.Source)); ink.Strokes.Add(new StrokeCollection(stream)); } catch { MessageBox.Show(owner, "手写原始笔迹无法读取，未更改原内容。"); return; } }
+        if (existing?.Tag is NoteEmbed previous) { try { using var stream = new MemoryStream(Convert.FromBase64String(previous.Source)); ink.Strokes.Add(new StrokeCollection(stream)); } catch { UiMessage.Show(owner, "手写原始笔迹无法读取，未更改原内容。"); return; } }
         var history = new Stack<StrokeCollection>(); var last = ink.Strokes.Clone(); bool replaying = false;
         ink.Strokes.StrokesChanged += (_, _) => { if (!replaying) history.Push(last); last = ink.Strokes.Clone(); };
         var penWidth = new Slider { Minimum = 1, Maximum = 12, Value = 3, Width = 100, VerticalAlignment = VerticalAlignment.Center, ToolTip = "画笔粗细" }; penWidth.ValueChanged += (_, _) => { ink.DefaultDrawingAttributes.Width = ink.DefaultDrawingAttributes.Height = penWidth.Value; };

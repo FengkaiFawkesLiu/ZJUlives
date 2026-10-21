@@ -14,14 +14,28 @@ public sealed class NoteCanvas : DockPanel
 {
     public InkCanvas Ink { get; } = new() { Background = Brushes.Transparent, IsHitTestVisible = false, EditingMode = InkCanvasEditingMode.None, DefaultDrawingAttributes = new() { Color = Colors.DarkSlateGray, Width = 3, Height = 3, FitToCurve = true } };
     public ScrollViewer Scroll { get; }
-    public Grid Paper { get; } = new() { Background = Brushes.White, HorizontalAlignment = HorizontalAlignment.Left, MinHeight = 780 };
+    public Grid Paper { get; } = new() { Background = NoteEditorUi.Paper, HorizontalAlignment = HorizontalAlignment.Center, MinHeight = 780 };
     readonly RichTextBox editor;
     readonly Action changed;
     readonly WrapPanel controls = new() { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 0, 0, 8) };
-    readonly TextBlock hint = Text("", 11, Muted);
+    readonly TextBlock hint = new() { Visibility=Visibility.Collapsed };
     readonly Stack<StrokeCollection> history = new(), future = new();
     StrokeCollection snapshot;
     bool replay;
+    StackPanel? documentSurface;
+    public void SetHeader(FrameworkElement header)
+    {
+        Scroll.Content=null;
+        documentSurface=new StackPanel();
+        documentSurface.Children.Add(header);documentSurface.Children.Add(Paper);
+        Scroll.Content=documentSurface;FitPaper();
+    }
+    public void SetWide(bool wide)
+    {
+        var layout=NoteTypography.Get(editor.Document);
+        layout.ColumnWidth=wide?Math.Clamp(Scroll.ActualWidth-2*layout.PageMargin-16,320,1600):580;
+        NoteTypography.Apply(editor.Document,layout,preserveParagraphs:true);UpdatePaper();changed();
+    }
     public NoteCanvas(RichTextBox editor, string source, Action changed)
     {
         this.editor = editor; this.changed = changed;
@@ -35,7 +49,8 @@ public sealed class NoteCanvas : DockPanel
         Paper.RowDefinitions.Add(new() { Height = GridLength.Auto }); Paper.RowDefinitions.Add(new() { Height = new GridLength(280) });
         Paper.Children.Add(editor); Grid.SetRowSpan(Ink, 2); Paper.Children.Add(Ink); UpdatePaper();
         editor.TextChanged += (_, _) => UpdatePaper(); editor.SizeChanged += (_, _) => UpdatePaper();
-        Scroll = new ScrollViewer { Content = Paper, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, Background = Brush("#EBEFEB") };
+        Scroll = new ScrollViewer { Content = Paper, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, FocusVisualStyle=null, Background = NoteEditorUi.Paper };
+        Scroll.SizeChanged+=(_,_)=>FitPaper();
         SetDock(controls, Dock.Top); Children.Add(controls); SetDock(hint, Dock.Bottom); Children.Add(hint); Children.Add(Scroll);
         void Tool(string label, Action action) { var b = Button(label, action); b.Padding = new Thickness(8, 6, 8, 6); controls.Children.Add(b); }
         Tool("文字编辑", () => SetMode(InkCanvasEditingMode.None)); Tool("画笔", () => SetMode(InkCanvasEditingMode.Ink)); Tool("橡皮", () => SetMode(InkCanvasEditingMode.EraseByPoint)); Tool("整笔擦除", () => SetMode(InkCanvasEditingMode.EraseByStroke)); Tool("选择笔迹", () => SetMode(InkCanvasEditingMode.Select)); Tool("撤销笔迹", Undo); Tool("重做笔迹", Redo);
@@ -67,9 +82,20 @@ public sealed class NoteCanvas : DockPanel
         Paper.MinHeight = Math.Max(Paper.MinHeight, Math.Min(50000, Ink.Strokes.GetBounds().Bottom + 180));
         Paper.Width = Math.Max(double.IsFinite(Paper.Width) ? Paper.Width : 628, Math.Min(50000, Ink.Strokes.GetBounds().Right + 24));
     }
-    public void UpdatePaper() { double width = editor.Document.PageWidth; editor.Width = double.IsFinite(width) ? width : 628; Paper.Width = editor.Width; Grow(); }
+    public void UpdatePaper() { double width = editor.Document.PageWidth; editor.Width = double.IsFinite(width) ? width : 628; Paper.Width = editor.Width; Grow(); FitPaper(); }
+    void FitPaper()
+    {
+        if(Scroll==null || Scroll.ActualWidth<=10)return;
+        double scale=Math.Min(1,Math.Max(1,Scroll.ActualWidth-12)/Math.Max(1,Paper.Width));
+        FrameworkElement surface=documentSurface ?? (FrameworkElement)Paper;
+        if(documentSurface!=null)Paper.LayoutTransform=Transform.Identity;
+        if(surface.LayoutTransform is ScaleTransform existing && Math.Abs(existing.ScaleX-scale)<.001)return;
+        surface.LayoutTransform=new ScaleTransform(scale,scale);
+    }
+    public void SetPaperBrush(Brush brush) { Paper.Background=brush;Scroll.Background=brush;editor.Background=brush; }
     public void SetMode(InkCanvasEditingMode mode)
     {
+        hint.Visibility=Visibility.Visible;hint.FontSize=11;hint.Foreground=Muted;
         controls.Visibility = Visibility.Visible; Ink.EditingMode = mode; Ink.IsHitTestVisible = mode != InkCanvasEditingMode.None;
         editor.IsReadOnly = mode != InkCanvasEditingMode.None;
         hint.Text = mode == InkCanvasEditingMode.None ? "文字编辑 · 笔迹覆盖在正文上，修改排版后可用选择工具移动笔迹" : "纸面批注 · 可选中移动、缩放或改色 · 橡皮只擦除笔迹";

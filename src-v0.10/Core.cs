@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -33,6 +33,7 @@ public sealed class Item
     public List<Attachment> Attachments { get; set; } = new();
     public string? ParentId { get; set; }
     public string? CampusUrl { get; set; }
+    public string TaskCategory { get; set; } = "其他";
     public bool Done { get; set; }
     public bool Cancelled { get; set; }
     public string Repeat { get; set; } = "不重复";
@@ -76,6 +77,8 @@ public sealed class SchoolRecord
 
 public sealed class Settings
 {
+    public double GlassOpacity { get; set; } = .06;
+    public bool InterfaceAnimations { get; set; } = true;
     public bool CourseReminder { get; set; } = false;
     public int CourseMinutes { get; set; } = 15;
     public string ExamMinutes { get; set; } = "1440,60";

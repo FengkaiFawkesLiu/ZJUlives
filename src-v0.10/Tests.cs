@@ -60,10 +60,11 @@ public static class Tests
         UpgradeTests.Run(Test, temp);
         CampusTests.Run(Test, temp);
         PeriodTests.Run(Test, temp);
-        NotesTests.Run(Test, temp);
+        NotesTests.Run(Test, temp); ObsidianTests.Run(Test, temp);
         NoteToolsTests.Run(Test);
         AcademicLogoutTests.Run(Test);
         CampusAssistantTests.Run(Test);
+        LibraryTests.Run(Test);
         var report = args.Length > 1 ? args[^1] : Path.Combine(temp, "test-results.txt");
         messages.Add($"\n{messages.Count - failures}/{messages.Count} passed. Temporary fixtures: {temp}");
         File.WriteAllLines(report, messages); return failures == 0 ? 0 : 1;

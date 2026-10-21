@@ -1,0 +1,11 @@
+PASS Unconnected state never implies an empty successful read
+PASS Verified current zero is explicit
+PASS History tab has independent empty success
+PASS History never creates calendar tasks
+PASS History renders real title and return date
+PASS History has no current-loan task action
+PASS Current tab displays only outstanding books
+PASS Current book links to official renewal
+PASS Failed refresh preserves cached books and exposes error
+PASS Stale zero is not presented as a fresh success
+PASS Separate snapshots survive restart

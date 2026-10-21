@@ -1,3 +1,0 @@
-PASS One Obsidian entry on notes page
-PASS Export defaults to current library
-PASS UI exports selected library

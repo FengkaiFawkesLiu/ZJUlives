@@ -59,9 +59,9 @@ public sealed partial class MainWindow
         var topbar = Stack(Row(Text("中心", 12, Muted), center, Button("全部展开", () => { mindCollapsed.Clear(); Render(); })), Space(8), status); topbar.Margin = new Thickness(12); DockPanel.SetDock(topbar, Dock.Top); dock.Children.Add(topbar);
         var slider = new Slider { Minimum = .35, Maximum = 1.6, Value = .8, Width = 130, VerticalAlignment = VerticalAlignment.Center };
         var bottom = Row(Text("缩放  ", 11, Muted), slider, Text($"  {visible.Count - (root.Node.Kind == "library" ? 1 : 0)} 个可见节点 · 点击打开，＋/− 折叠", 11, Muted)); bottom.Margin = new Thickness(12); DockPanel.SetDock(bottom, Dock.Bottom); dock.Children.Add(bottom);
-        var canvas = new Canvas { Width = Math.Max(900, maxDepth * 270 + 340), Height = Math.Max(580, root.Height + 90), Background = Brush("#F9FAF7") };
+        var canvas = new Canvas { Width = Math.Max(900, maxDepth * 270 + 340), Height = Math.Max(580, root.Height + 90), Background = Brushes.Transparent };
         var scale = new ScaleTransform(.8, .8); canvas.LayoutTransform = scale;
-        var scroll = new ScrollViewer { Content = canvas, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, PanningMode = PanningMode.Both }; dock.Children.Add(scroll);
+        var scroll = new ScrollViewer { FocusVisualStyle = null, Content = canvas, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, PanningMode = PanningMode.Both }; dock.Children.Add(scroll);
         scroll.Loaded += (_, _) => { slider.Value = Math.Clamp(Math.Min((scroll.ActualWidth - 25) / canvas.Width, (scroll.ActualHeight - 25) / canvas.Height), .35, 1); };
         var visibleMap = visible.ToDictionary(b => b.Node.Key);
         var treeEdges = new HashSet<string>();
@@ -100,6 +100,6 @@ public sealed partial class MainWindow
         scroll.PreviewMouseWheel += (_, e) => { if (Keyboard.Modifiers != ModifierKeys.Control) return; slider.Value = Math.Clamp(slider.Value + (e.Delta > 0 ? .1 : -.1), .35, 1.6); e.Handled = true; };
         if (nodes.Count == 0) { var empty = Text("新建笔记并建立关联，即可展开思维导图。", 15, Muted); Canvas.SetLeft(empty, 300); Canvas.SetTop(empty, 100); canvas.Children.Add(empty); }
         if (include.Count > 240) status.Text = "当前展示前 240 个节点，请搜索缩小范围。";
-        return new Border { BorderBrush = Theme.Line, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(12), Background = Brushes.White, Child = dock, ClipToBounds = true };
+        return GraphGlass.Panel(dock);
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -9,7 +9,7 @@ using System.Windows.Controls.Primitives;
 namespace Shike;
 public sealed partial class MainWindow
 {
-    void RunFloatingFormulaTests(string dir, Action<bool,string> check, Action<Action,Action<Window>> modal, Action<Window,string> click)
+    void RunFloatingFormulaTests(string dir, Action<bool,string> check, Action<Action,Action<AppPanel>> modal, Action<FrameworkElement,string> click)
     {
         string original = string.Concat(Enumerable.Repeat("这是用于验证公式四周环绕的课堂笔记。拖动公式后，文字应避开公式的矩形区域，继续在两侧自然排版。", 16));
         Point savedPosition = default;

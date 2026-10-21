@@ -1,2 +1,0 @@
-MathLive 0.110.0
-https://github.com/arnog/mathlive

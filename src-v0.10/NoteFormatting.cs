@@ -14,11 +14,12 @@ public static class NoteFormatting
         var panel = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) };
         var installed = Fonts.SystemFontFamilies.Select(f => f.Source).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var families = new[] { "Microsoft YaHei UI", "Microsoft YaHei", "SimSun", "KaiTi", "SimHei", "FangSong", "DengXian", "Arial", "Calibri", "Cambria", "Georgia", "Times New Roman", "Consolas" }.Where(installed.Contains).ToArray();
-        var family = Combo(families, families.FirstOrDefault() ?? "Microsoft YaHei UI"); family.Width = 170; family.ToolTip = "字体：选中文字后设置；未选择时用于接下来输入的文字";
+        string Display(string name) => name switch { "Microsoft YaHei UI"=>"微软雅黑", "Microsoft YaHei"=>"微软雅黑（正文）", "SimSun"=>"宋体", "KaiTi"=>"楷体", "SimHei"=>"黑体", _=>name };
+        var family = Combo(families.Select(Display).ToArray(), Display(families.FirstOrDefault() ?? "Microsoft YaHei UI")); family.Width = 126; family.ToolTip = "字体：选中文字后设置；未选择时用于接下来输入的文字";
         var sizes = Combo(new[] { "10", "12", "14", "16", "18", "20", "24", "28", "32", "36", "48", "60", "72" }, "16"); sizes.Width = 72; sizes.ToolTip = "字号";
-        family.SelectionChanged += (_, _) => { editor.Selection.ApplyPropertyValue(TextElement.FontFamilyProperty, new FontFamily((string)family.SelectedItem)); editor.Focus(); };
+        family.SelectionChanged += (_, _) => { editor.Selection.ApplyPropertyValue(TextElement.FontFamilyProperty, new FontFamily(families.First(f=>Display(f)==(string)family.SelectedItem))); editor.Focus(); };
         sizes.SelectionChanged += (_, _) => { editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, double.Parse((string)sizes.SelectedItem)); editor.Focus(); };
-        panel.Children.Add(family); panel.Children.Add(sizes);
+        panel.Children.Add(NoteEditorUi.Setting("字体",family)); panel.Children.Add(NoteEditorUi.Setting("字号",sizes));
         foreach (var (name, color) in NotePalette.Colors)
         {
             var b = Button("A", () => { editor.Selection.ApplyPropertyValue(TextElement.ForegroundProperty, new SolidColorBrush(color)); editor.Focus(); }); b.Focusable = false; b.Foreground = new SolidColorBrush(color); b.ToolTip = "文字颜色 · " + name; b.Padding = new Thickness(7); b.Margin = new Thickness(0, 0, 2, 0); panel.Children.Add(b);

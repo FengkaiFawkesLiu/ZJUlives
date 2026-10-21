@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -10,7 +10,7 @@ using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.Wpf;
 
 namespace Shike;
-public sealed class FormulaEditorWindow : Window
+public sealed class FormulaEditorWindow : AppPanel
 {
     readonly WebView2 browser = new();
     readonly string initial, profile;
@@ -23,15 +23,15 @@ public sealed class FormulaEditorWindow : Window
     public BitmapSource? ResultImage { get; private set; }
     public string ResultLatex { get; private set; } = "";
     public TaskCompletionSource<bool> Ready { get; } = new();
-    public FormulaEditorWindow(Window? owner, string source, bool isEditing, string dataRoot)
+    public FormulaEditorWindow(FrameworkElement? owner, string source, bool isEditing, string dataRoot)
     {
         if (owner != null) Owner = owner;
         initial = source; CurrentSource = source; editing = isEditing; profile = Path.Combine(dataRoot, "formula-runtime");
-        Title = "数学公式 · 可视化编辑"; Width = 1080; Height = 850; MinWidth = 780; MinHeight = 650;
-        WindowStartupLocation = owner == null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner;
+        Title = "数学公式 · 可视化编辑"; PreferredWidth = 1080; MinimumContentWidth=520;
+
         Content = browser;
         Loaded += async (_, _) => { _ = WatchStartup(); await Initialize(); };
-        Closing += (_, e) => { if (saving) { e.Cancel = true; return; } if (!accepted && dirty && MessageBox.Show(this, "放弃本次公式修改？", "公式尚未插入笔记", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) e.Cancel = true; };
+        Closing += (_, e) => { if (saving) { e.Cancel = true; return; } if (!accepted && dirty && UiMessage.Show(this, "放弃本次公式修改？", "公式尚未插入笔记", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) != MessageBoxResult.Yes) e.Cancel = true; };
         Closed += (_, _) => { closed = true; browser.Dispose(); Ready.TrySetResult(false); };
     }
     async Task Initialize()
@@ -129,7 +129,7 @@ public sealed class FormulaEditorWindow : Window
 }
 public sealed partial class MainWindow
 {
-    void EditFormula(Window owner, RichTextBox editor, Image? existing = null)
+    void EditFormula(FrameworkElement owner, RichTextBox editor, Image? existing = null)
     {
         var dialog = new FormulaEditorWindow(owner, (existing?.Tag as NoteEmbed)?.Source ?? "", existing != null, store.Root);
         if (dialog.ShowDialog() == true && dialog.ResultImage != null)

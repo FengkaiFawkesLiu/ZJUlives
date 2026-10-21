@@ -21,16 +21,18 @@ public sealed partial class MainWindow
         Item? original = occurrence?.Item; bool single = false;
         if (original?.Repeat != null && original.Repeat != "不重复")
         {
-            var scope = MessageBox.Show(this, "修改哪部分？\n\n“是”：仅这一次\n“否”：整个重复系列\n“取消”：返回", "重复日程", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+            var scope = UiMessage.Show(this, "修改哪部分？\n\n“是”：仅这一次\n“否”：整个重复系列\n“取消”：返回", "重复日程", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
             if (scope == MessageBoxResult.Cancel) return; single = scope == MessageBoxResult.Yes;
         }
         var start = at ?? date.Date.AddHours(DateTime.Now.Hour < 22 ? DateTime.Now.Hour + 1 : 20);
         var draft = original?.Copy() ?? new Item { Kind = kind, Start = start, End = start.AddHours(1), Until = start.AddMonths(4).Date };
+        if (original == null && kind == "待办") draft.TaskCategory = view == "作业" ? "作业" : "其他";
         bool remoteDoneAtOpen = draft.AssistantRemoteDone;
         if (campus != null) { draft.Title = campus.Title; draft.Location = campus.Location; draft.CampusUrl = campus.Url; draft.Note = campus.Description + "\n来源：" + campus.Url; }
         if (single && occurrence != null) { draft.Start = occurrence.Start; draft.End = occurrence.End; draft.Repeat = "不重复"; draft.Excluded.Clear(); draft.Id = Guid.NewGuid().ToString("N"); draft.ParentId = original!.Id; }
         var dialog = Dialog(this, original == null ? "新建事项 · 拾课" : "事项详情 · 拾课", 800, 880);
-        var dock = new DockPanel { Margin = new Thickness(25), Background = Cream }; dialog.Content = dock;
+        dialog.MinimumContentWidth = 540;
+        var dock = new DockPanel { Margin = new Thickness(25), Background = System.Windows.Media.Brushes.Transparent }; dialog.Content = dock;
         var actions = new DockPanel { Margin = new Thickness(0, 15, 0, 0) }; DockPanel.SetDock(actions, Dock.Bottom); dock.Children.Add(actions);
         var header = Stack(Text(original == null ? (kind == "笔记" ? "留下一点想法" : "为新的安排留好位置") : "安排与记录", 25, bold: true), Space(6), Text("日程、笔记与附件，保存在这台电脑。", 12, Muted), Space(18));
         DockPanel.SetDock(header, Dock.Top); dock.Children.Add(header);
@@ -38,6 +40,7 @@ public sealed partial class MainWindow
         var title = new TextBox { Text = draft.Title, FontSize = 20, MaxLength = 300 };
         var type = Combo(new[] { "活动", "课程", "考试", "待办" }, draft.Kind); type.IsEnabled = original?.SourceKey == null && original?.AssistantKey == null;
         panel.Children.Add(Field("标题", title)); panel.Children.Add(Field("类型", type));
+        var category = Combo(new[] { "作业", "其他" }, TaskCategories.Of(draft)); category.IsEnabled = draft.AssistantKey == null; var categoryField = Field("待办分类", category); panel.Children.Add(categoryField);
         var dateStart = new DatePicker { SelectedDate = draft.Start.Date, Width = 235, VerticalAlignment = VerticalAlignment.Center };
         var dateEnd = new DatePicker { SelectedDate = draft.End.Date, Width = 235, VerticalAlignment = VerticalAlignment.Center };
         var timeStart = new TimeWheel(draft.Start); var timeEnd = new TimeWheel(draft.End);
@@ -60,8 +63,11 @@ public sealed partial class MainWindow
         parents.AddRange(store.Data.Items.Where(i => i.Id != draft.Id && !i.Cancelled && i.Kind != "课程").OrderBy(i => i.Title)); related.ItemsSource = parents.Select(i => i.Title).ToList(); related.SelectedIndex = Math.Max(0, parents.FindIndex(i => i.Id == draft.ParentId));
         bool relatedChanged = false; related.SelectionChanged += (_, _) => relatedChanged = true;
         panel.Children.Add(Field("关联事项", related));
-        var note = new TextBox { Text = draft.Note, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MinHeight = 170, MaxHeight = 350 };
+        var note = new TextBox { Text = draft.Note, AcceptsReturn = true, VerticalContentAlignment = VerticalAlignment.Top, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MinHeight = 170, MaxHeight = 350 };
         panel.Children.Add(Card(Stack(Text("笔记与准备", 16, bold: true), Space(7), Text("随手记录想法，也可以整理要带的材料。", 11, Muted), Space(12), note)));
+        var noteStatus = Text(original == null || single ? "新建记录的备注随安排一起保存" : "",12,Muted);
+        panel.Children.Add(noteStatus);
+        using var autosave = original != null && !single ? new RemarkAutosave(store, original.Id, note, noteStatus, dialog) : null;
         var files = new StackPanel(); panel.Children.Add(Text("附件 · 复制到本地资料库", 12, Muted)); panel.Children.Add(Space(8)); panel.Children.Add(files);
         var staged = new Dictionary<Attachment, string>();
         void DrawFiles()
@@ -78,10 +84,10 @@ public sealed partial class MainWindow
                     {
                         var ext = Path.GetExtension(path).ToLowerInvariant();
                         if (new[] { ".exe", ".bat", ".cmd", ".ps1", ".vbs", ".js", ".msi", ".scr", ".com", ".lnk", ".url", ".hta" }.Contains(ext))
-                        { MessageBox.Show(dialog, "此附件可能是程序或脚本。请从数据文件夹自行检查后打开。"); return; }
+                        { UiMessage.Show(dialog, "此附件可能是程序或脚本。请从数据文件夹自行检查后打开。"); return; }
                         Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
                     }
-                    catch (Exception ex) { MessageBox.Show(dialog, "附件无法打开：" + ex.Message); }
+                    catch (Exception ex) { UiMessage.Show(dialog, "附件无法打开：" + ex.Message); }
                 }); open.HorizontalContentAlignment = HorizontalAlignment.Left; row.Children.Add(open); files.Children.Add(row);
             }
         }
@@ -89,7 +95,7 @@ public sealed partial class MainWindow
         panel.Children.Add(Button("＋ 添加附件", () =>
         {
             var picker = new OpenFileDialog { Multiselect = true, Title = "选择要复制到本地的附件" };
-            if (picker.ShowDialog(dialog) == true) foreach (var file in picker.FileNames) { var a = new Attachment { Name = Path.GetFileName(file) }; draft.Attachments.Add(a); staged[a] = file; }
+            if (picker.ShowDialog(this) == true) foreach (var file in picker.FileNames) { var a = new Attachment { Name = Path.GetFileName(file) }; draft.Attachments.Add(a); staged[a] = file; }
             DrawFiles();
         }));
         panel.Children.Add(Space());
@@ -105,6 +111,7 @@ public sealed partial class MainWindow
         void ApplyType()
         {
             var selected = type.SelectedItem?.ToString(); bool isNote = selected == "笔记", isTask = selected == "待办";
+            categoryField.Visibility = isTask ? Visibility.Visible : Visibility.Collapsed;
             timeCard.Visibility = isNote ? Visibility.Collapsed : Visibility.Visible;
             note.MinHeight = isNote ? 290 : 170;
             ((UIElement)endField).Visibility = isNote || isTask ? Visibility.Collapsed : Visibility.Visible;
@@ -113,10 +120,22 @@ public sealed partial class MainWindow
             reminderPanel.Visibility = isNote ? Visibility.Collapsed : Visibility.Visible; done.Visibility = isTask ? Visibility.Visible : Visibility.Collapsed;
         }
         type.SelectionChanged += (_, _) => ApplyType(); ApplyType();
+        bool completed = false;
+        string DraftState() => System.Text.Json.JsonSerializer.Serialize(new { title.Text, Type=type.SelectedItem, Category=category.SelectedItem,
+            Start=dateStart.SelectedDate, End=dateEnd.SelectedDate, StartTime=timeStart.Value, EndTime=timeEnd.Value,
+            Location=location.Text, Repeat=repeat.SelectedItem, Until=until.SelectedDate, DefaultReminder=reminderDefault.IsChecked,
+            Reminder=reminder.Text, Related=related.SelectedIndex, Done=done.IsChecked, Cancelled=cancelled.IsChecked,
+            Note=autosave==null?note.Text:"", Files=draft.Attachments.Select(a=>a.Name+"|"+a.File).ToArray() });
+        string openedState=DraftState();
+        dialog.Closing += (_,e) => {
+            if(completed || preview && Equals(dialog.Tag,"test-abort") || DraftState()==openedState)return;
+            if(UiMessage.Show(dialog,"安排有尚未保存的修改。是否放弃这些修改？已经自动保存的备注会保留。","离开编辑",MessageBoxButton.YesNo,MessageBoxImage.Question,MessageBoxResult.No)!=MessageBoxResult.Yes)e.Cancel=true;
+        };
         var right = Row(Button("取消", () => dialog.Close()), Button("保存", () =>
         {
             try
             {
+                if (autosave != null && !autosave.Flush()) return;
                 if (string.IsNullOrWhiteSpace(title.Text)) throw new InvalidOperationException("请填写标题。");
                 draft.Title = title.Text.Trim(); draft.Kind = type.SelectedItem!.ToString()!;
                 if (draft.Kind != "笔记")
@@ -140,11 +159,11 @@ public sealed partial class MainWindow
                 if (draft.Repeat != "不重复" && (draft.End - draft.Start).TotalDays > (draft.Repeat == "每天" ? 1 : 7)) throw new InvalidOperationException("每次日程的时长不能超过重复间隔。");
                 draft.Reminders = draft.Kind == "笔记" ? new() : reminderDefault.IsChecked == true ? null : Engine.ParseReminders(reminder.Text);
                 if (relatedChanged || original == null) draft.ParentId = related.SelectedIndex > 0 ? parents[related.SelectedIndex].Id : null;
-                draft.Done = done.IsChecked == true; draft.Cancelled = cancelled.IsChecked == true;
+                draft.TaskCategory = category.SelectedItem?.ToString() ?? "其他"; draft.Done = done.IsChecked == true; draft.Cancelled = cancelled.IsChecked == true;
                 if (draft.SourceKey != null) draft.LocalOverride = !SchoolRecord.From(draft).Same(draft.Original) || draft.Cancelled;
                 var future = Engine.Between(new[] { draft }, draft.Start.Date, draft.Start.Date.AddDays(31)).ToList();
                 bool conflict = future.Any(a => Engine.Between(store.Data.Items.Where(i => i.Id != original?.Id && i.Kind is not ("待办" or "笔记")), a.Start, a.End).Any(b => Engine.Overlaps(a, b)));
-                if (draft.Kind is not ("待办" or "笔记") && conflict && MessageBox.Show(dialog, "此安排在未来 31 天内与其他日程重叠。仍然保存吗？", "时间冲突提醒", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
+                if (draft.Kind is not ("待办" or "笔记") && conflict && UiMessage.Show(dialog, "此安排在未来 31 天内与其他日程重叠。仍然保存吗？", "时间冲突提醒", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes) return;
                 foreach (var pair in staged.ToList()) { var saved = store.AddFile(pair.Value); pair.Key.File = saved.File; staged.Remove(pair.Key); }
                 if (Commit(() =>
                 {
@@ -157,20 +176,21 @@ public sealed partial class MainWindow
                     if (single && original != null && occurrence != null) original.Excluded.Add(occurrence.Start.ToString("yyyy-MM-dd"));
                     else if (original != null) store.Data.Items.Remove(original);
                     store.Data.Items.Add(draft);
-                })) dialog.Close();
+                })) { completed=true; dialog.Close(); }
             }
-            catch (Exception ex) { MessageBox.Show(dialog, ex.Message, "请检查输入", MessageBoxButton.OK, MessageBoxImage.Warning); }
+            catch (Exception ex) { UiMessage.Show(dialog, ex.Message, "请检查输入", MessageBoxButton.OK, MessageBoxImage.Warning); }
         }, true));
         DockPanel.SetDock(right, Dock.Right); actions.Children.Add(right);
         if (original != null) actions.Children.Add(Button("删除", () =>
         {
-            if (MessageBox.Show(dialog, (original.SourceKey != null || original.AssistantKey != null) ? "学校安排将标记取消，以免下次读取时重新出现。继续吗？" : "删除此记录？如有需要，请先导出备份。", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            if (autosave != null && !autosave.Flush()) return;
+            if (UiMessage.Show(dialog, (original.SourceKey != null || original.AssistantKey != null) ? "学校安排将标记取消，以免下次读取时重新出现。继续吗？" : "删除此记录？如有需要，请先导出备份。", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
             if (Commit(() =>
             {
                 if (single && occurrence != null) original.Excluded.Add(occurrence.Start.ToString("yyyy-MM-dd"));
                 else if (original.SourceKey != null || original.AssistantKey != null) { original.Cancelled = true; original.LocalOverride = true; }
                 else { store.Data.Items.Remove(original); foreach (var child in store.Data.Items.Where(i => i.ParentId == original.Id)) child.ParentId = null; }
-            })) dialog.Close();
+            })) { completed=true; dialog.Close(); }
         }));
         dialog.Loaded += (_, _) => title.Focus(); dialog.ShowDialog();
     }

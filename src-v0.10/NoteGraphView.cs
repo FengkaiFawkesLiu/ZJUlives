@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using static Shike.Theme;
 
 namespace Shike;
@@ -32,15 +33,15 @@ public sealed partial class MainWindow
         var edges = graph.Edges.Where(e => nodeKeys.Contains(e.From) && nodeKeys.Contains(e.To)).ToList();
         var dock = new DockPanel();
         var quickStatus = Text("右键笔记节点，开始快捷关联", 12, Green, true);
-        var quickBanner = new Border { Background = Brush("#EDF3E9"), Padding = new Thickness(14, 10, 14, 10), Child = quickStatus };
+        var quickBanner = new Border { Background = Brushes.Transparent, Padding = new Thickness(18, 16, 18, 10), Child = quickStatus };
         DockPanel.SetDock(quickBanner, Dock.Top); dock.Children.Add(quickBanner);
         var legend = Row(Text("● 笔记   ", 11, Brush("#8B79AF")), Text("● 课程   ", 11, Green), Text("● 其他事项   ", 11, Brush("#B38A4D")), Text("点击打开 · 拖动节点或空白处", 11, Muted)); legend.Margin = new Thickness(14, 10, 14, 10); DockPanel.SetDock(legend, Dock.Top); dock.Children.Add(legend);
         var bottom = new DockPanel { Margin = new Thickness(14, 8, 14, 12) }; DockPanel.SetDock(bottom, Dock.Bottom); dock.Children.Add(bottom);
-        var hint = Text(total > 240 ? $"当前显示前 240 / {total} 个节点，请搜索缩小范围" : $"{nodes.Count} 个节点 · {edges.Count} 条连线", 11, Muted);
+        var hint = quickStatus; // Operational feedback belongs in the top banner, not the lower-left corner.
         var slider = new Slider { Minimum = .35, Maximum = 1.8, Value = .7, Width = 125, VerticalAlignment = VerticalAlignment.Center, ToolTip = "缩放图谱" };
-        var zoom = Row(Text("缩放", 11, Muted), slider); DockPanel.SetDock(zoom, Dock.Right); bottom.Children.Add(zoom); bottom.Children.Add(hint);
-        var scroll = new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden, PanningMode = PanningMode.Both };
-        var canvas = new Canvas { Width = 1150, Height = 820, Background = Brush("#F9FAF7"), ClipToBounds = false };
+        var zoom = Row(Text("缩放", 11, Muted), slider); DockPanel.SetDock(zoom, Dock.Right); bottom.Children.Add(zoom); bottom.Children.Add(new Border());
+        var scroll = new ScrollViewer { FocusVisualStyle = null, HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden, PanningMode = PanningMode.Both };
+        var canvas = new Canvas { Width = 1150, Height = 820, Background = Brushes.Transparent, ClipToBounds = false };
         var scale = new ScaleTransform(slider.Value, slider.Value); canvas.LayoutTransform = scale; scroll.Content = canvas; dock.Children.Add(scroll);
         if (nodes.Count == 0)
         {
@@ -52,15 +53,38 @@ public sealed partial class MainWindow
         if (positions.Count > 0) { canvas.Width = Math.Max(1150, positions.Values.Max(p => p.X) + 100); canvas.Height = Math.Max(820, positions.Values.Max(p => p.Y) + 100); }
         var lines = new Dictionary<NoteEdge, Line>();
         var dots = new Dictionary<string, Ellipse>();
+        var elements = new Dictionary<string, FrameworkElement>();
+        var physics = new GraphPhysics(positions, edges);
+        var timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(16.667) };
+        int quiet = 0, frames = 0; bool dirty = false;
+        void DrawNodes()
+        {
+            foreach (var pair in elements) { Canvas.SetLeft(pair.Value, positions[pair.Key].X - 75); Canvas.SetTop(pair.Value, positions[pair.Key].Y - 27); }
+            DrawLines();
+        }
+        void Wake()
+        {
+            quiet = frames = 0;
+            if (!Motion.Enabled) { for (int i = 0; i < 200; i++) physics.Step(canvas.Width, canvas.Height); DrawNodes(); if (physics.Held == null && dirty) { dirty = false; SavePositions(); } return; }
+            timer.Start();
+        }
+        timer.Tick += (_, _) =>
+        {
+            double speed = physics.Step(canvas.Width, canvas.Height); DrawNodes();
+            quiet = speed < .035 ? quiet + 1 : 0; frames++;
+            if (physics.Held == null && (quiet >= 24 || frames >= 1200)) { timer.Stop(); physics.Stop(); if (dirty) { dirty = false; SavePositions(); } }
+        };
+        dock.Unloaded += (_, _) => { timer.Stop(); physics.Held = null; physics.Stop(); if (dirty) { dirty = false; SavePositions(); } };
         updateQuickAppearance = () =>
         {
             var source = nodes.FirstOrDefault(n => n.Key == quickNoteKey);
             quickStatus.Text = quickNoteKey == null ? "右键笔记节点，开始快捷关联" : $"快捷关联：{source?.Label ?? "已选笔记"} → 右键目标节点关联；左键任意位置或右键起点退出";
-            foreach (var pair in dots) { pair.Value.Stroke = pair.Key == quickNoteKey ? Brush("#E1A34B") : Brushes.White; pair.Value.StrokeThickness = pair.Key == quickNoteKey ? 6 : 3; }
+            foreach (var pair in dots) { pair.Value.Stroke = pair.Key == quickNoteKey ? Brush("#90E1A34B") : Brush("#85FFFFFF"); pair.Value.StrokeThickness = 1.5; }
+            if (total > 240 && quickNoteKey == null) quickStatus.Text = $"当前显示前 240 / {total} 个节点，请搜索缩小范围";
         };
         foreach (var edge in edges)
         {
-            var line = new Line { Stroke = Brush("#CBD8D0"), StrokeThickness = 1.4, IsHitTestVisible = false }; lines[edge] = line; canvas.Children.Add(line);
+            var line = new Line { Stroke = Brush("#70819F8C"), StrokeThickness = 1.2 / slider.Value, IsHitTestVisible = false }; lines[edge] = line; canvas.Children.Add(line);
         }
         void DrawLines()
         {
@@ -69,20 +93,22 @@ public sealed partial class MainWindow
         void SavePositions()
         {
             var before = library.Positions.ToDictionary(p => p.Key, p => p.Value);
-            try { foreach (var p in positions) library.Positions[p.Key] = new() { X = p.Value.X, Y = p.Value.Y }; store.Save(); hint.Text = "布局已保存到本地"; }
-            catch (Exception ex) { library.Positions = before; MessageBox.Show(this, "布局未保存：" + ex.Message); }
+            try { foreach (var p in positions) library.Positions[p.Key] = new() { X = p.Value.X, Y = p.Value.Y }; store.Save(); }
+            catch (Exception ex) { library.Positions = before; UiMessage.Show(this, "布局未保存：" + ex.Message); }
         }
         foreach (var node in nodes)
         {
             int degree = edges.Count(e => e.From == node.Key || e.To == node.Key);
             double diameter = Math.Min(48, 27 + degree * 3);
             var color = node.Kind == "note" ? Brush("#8B79AF") : node.Kind == "course" ? Green : Brush("#B38A4D");
-            var dot = new Ellipse { Width = diameter, Height = diameter, Fill = node.Missing ? Muted : color, Stroke = Brushes.White, StrokeThickness = 3 };
+            var baseColor = node.Missing ? Muted : color;
+            var dot = new Ellipse { Width = diameter, Height = diameter, Fill = baseColor, Stroke = Brush("#85FFFFFF"), StrokeThickness = 1.5 };
             dots[node.Key] = dot;
-            var label = Text(node.Label, 17, Ink, degree > 1); label.TextAlignment = TextAlignment.Center; label.MaxHeight = 48;
+            var label = Text(node.Label, 14, Ink, degree > 1); label.TextAlignment = TextAlignment.Center; label.MaxHeight = 48;
             var element = new Border { Width = 150, Background = Brushes.Transparent, Cursor = Cursors.Hand, ToolTip = node.Label + "\n" + node.Detail, Child = Stack(new Border { Height = 54, Child = dot }, label), Opacity = query.Length > 0 && !matches.Contains(node.Key) ? .48 : 1 };
             void Position() { Canvas.SetLeft(element, positions[node.Key].X - 75); Canvas.SetTop(element, positions[node.Key].Y - 27); }
-            Position(); canvas.Children.Add(element);
+            element.RenderTransform = new ScaleTransform(1 / slider.Value, 1 / slider.Value, 75, 27);
+            Position(); canvas.Children.Add(element); elements[node.Key] = element;
             element.MouseRightButtonDown += (_, e) =>
             {
                 e.Handled = true;
@@ -102,31 +128,38 @@ public sealed partial class MainWindow
                 })) updateQuickAppearance?.Invoke();
             };
             Point? origin = null; Point initial = default; bool moved = false;
-            element.MouseLeftButtonDown += (_, e) => { origin = e.GetPosition(canvas); initial = positions[node.Key]; moved = false; element.CaptureMouse(); e.Handled = true; };
+            DateTime lastMove = DateTime.MinValue;
+            element.MouseLeftButtonDown += (_, e) => { origin = e.GetPosition(canvas); initial = positions[node.Key]; moved = false; physics.Held = node.Key; GraphGlass.Press(dot, baseColor, true); element.CaptureMouse(); e.Handled = true; };
             element.MouseMove += (_, e) =>
             {
                 if (origin is not Point start) return; var current = e.GetPosition(canvas); var delta = current - start;
                 if (delta.Length > 4) moved = true;
-                if (moved) { positions[node.Key] = new Point(Math.Clamp(initial.X + delta.X, 85, canvas.Width - 85), Math.Clamp(initial.Y + delta.Y, 45, canvas.Height - 80)); Position(); DrawLines(); }
+                if (moved) { physics.Move(node.Key, new Point(Math.Clamp(initial.X + delta.X, 85, canvas.Width - 85), Math.Clamp(initial.Y + delta.Y, 45, canvas.Height - 80))); lastMove = DateTime.UtcNow; dirty = true; Position(); DrawLines(); Wake(); }
             };
-            element.MouseLeftButtonUp += (_, e) => { if (origin == null) return; origin = null; element.ReleaseMouseCapture(); e.Handled = true; if (moved) SavePositions(); else OpenNoteTarget(node); };
-            element.LostMouseCapture += (_, _) => origin = null;
+            void Release()
+            {
+                origin = null; physics.Held = null; GraphGlass.Press(dot, baseColor, false); updateQuickAppearance?.Invoke();
+                if ((DateTime.UtcNow - lastMove).TotalMilliseconds > 100) physics.Move(node.Key, positions[node.Key]);
+                if (moved) Wake();
+            }
+            element.MouseLeftButtonUp += (_, e) => { if (origin == null) return; Release(); element.ReleaseMouseCapture(); e.Handled = true; if (!moved) OpenNoteTarget(node); };
+            element.LostMouseCapture += (_, _) => { if (origin != null) Release(); };
         }
         DrawLines(); updateQuickAppearance?.Invoke();
-        slider.ValueChanged += (_, _) => { scale.ScaleX = scale.ScaleY = slider.Value; };
+        slider.ValueChanged += (_, _) => { scale.ScaleX = scale.ScaleY = slider.Value; foreach (var element in elements.Values) element.RenderTransform = new ScaleTransform(1 / slider.Value, 1 / slider.Value, 75, 27); foreach (var line in lines.Values) line.StrokeThickness = 1.2 / slider.Value; };
         scroll.PreviewMouseWheel += (_, e) => { slider.Value = Math.Clamp(slider.Value + (e.Delta > 0 ? .08 : -.08), slider.Minimum, slider.Maximum); e.Handled = true; };
         Point? pan = null; double horizontal = 0, vertical = 0;
         canvas.MouseLeftButtonDown += (_, e) => { if (e.OriginalSource != canvas) return; pan = e.GetPosition(scroll); horizontal = scroll.HorizontalOffset; vertical = scroll.VerticalOffset; canvas.CaptureMouse(); canvas.Cursor = Cursors.ScrollAll; };
         canvas.MouseMove += (_, e) => { if (pan is Point p) { var delta = e.GetPosition(scroll) - p; scroll.ScrollToHorizontalOffset(horizontal - delta.X); scroll.ScrollToVerticalOffset(vertical - delta.Y); } };
         canvas.MouseLeftButtonUp += (_, _) => { pan = null; canvas.ReleaseMouseCapture(); canvas.Cursor = Cursors.Arrow; };
         canvas.LostMouseCapture += (_, _) => { pan = null; canvas.Cursor = Cursors.Arrow; };
-        var reset = Button("重排", () => { if (Commit(() => library.Positions.Clear())) Render(); }); reset.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(reset, Dock.Right); bottom.Children.Insert(0, reset);
-        var save = Button("保存布局", SavePositions); save.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(save, Dock.Right); bottom.Children.Insert(0, save);
+        var reset = Button("重排", () => { var layout = ForcePositions(nodes, edges); foreach (var p in layout) positions[p.Key] = p.Value; physics.Stop(); dirty = true; DrawNodes(); Wake(); }); reset.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(reset, Dock.Right); bottom.Children.Insert(0, reset);
+        var save = Button("保存布局", () => { timer.Stop(); physics.Stop(); dirty = false; SavePositions(); }, true); save.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(save, Dock.Right); bottom.Children.Insert(0, save);
         scroll.Loaded += (_, _) => {
             slider.Value = quickNoteKey != null && quickGraphZoom.HasValue ? quickGraphZoom.Value : Math.Clamp(Math.Min(scroll.ViewportWidth / 1150, scroll.ViewportHeight / 820), .35, 1);
             if (quickNoteKey != null && quickGraphZoom.HasValue) { scroll.UpdateLayout(); scroll.ScrollToHorizontalOffset(quickGraphHorizontal); scroll.ScrollToVerticalOffset(quickGraphVertical); }
         };
-        return new Border { Background = Brushes.White, BorderBrush = Theme.Line, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(14), Child = dock, ClipToBounds = true };
+        return GraphGlass.Panel(dock);
     }
     internal static Dictionary<string, Point> ForcePositions(List<NoteNode> nodes, List<NoteEdge> edges)
     {

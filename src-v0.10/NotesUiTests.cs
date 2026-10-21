@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -11,7 +11,7 @@ using System.Windows.Threading;
 namespace Shike;
 public sealed partial class MainWindow
 {
-    void RunNoteUiTests(string dir, Action<bool, string> check, Action<Action, Action<Window>> modal, Action<Window, string> click)
+    void RunNoteUiTests(string dir, Action<bool, string> check, Action<Action, Action<AppPanel>> modal, Action<FrameworkElement, string> click)
     {
         modal(() => EditLibrary(null), window => { Visuals<TextBox>(window).Single().Text = "学习与探索"; click(window, "保存笔记库"); });
         var library = CurrentLibrary; check(library.Name == "学习与探索", "Create independent note library via UI");
@@ -29,9 +29,9 @@ public sealed partial class MainWindow
                 Exception? error = null;
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    var picker = window.OwnedWindows.Cast<Window>().Single();
+                    var picker = window.OwnedPanels.Single();
                     try {
-                        picker.UpdateLayout(); var boxes = Visuals<CheckBox>(picker).Where(c => Visuals<TextBlock>(c).Any(t => t.Text == label)).ToList();
+                        WaitForPanelLayout(); picker.UpdateLayout(); var boxes = Visuals<CheckBox>(picker).Where(c => Visuals<TextBlock>(c).Any(t => t.Text == label)).ToList();
                         check(boxes.Count == 1, "Association picker deduplicates target: " + label);
                         boxes[0].IsChecked = true; boxes[0].RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent)); click(picker, "确定关联");
                     } catch (Exception ex) { error = ex; picker.Close(); }
@@ -68,7 +68,7 @@ public sealed partial class MainWindow
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                var picker = window.OwnedWindows.Cast<Window>().Single(); picker.UpdateLayout();
+                var picker = window.OwnedPanels.Single(); WaitForPanelLayout(); picker.UpdateLayout();
                 var box = Visuals<CheckBox>(picker).Single(c => Visuals<TextBlock>(c).Any(t => t.Text == b.Title));
                 check(box.IsChecked == true, "Reverse endpoint shows existing association as selected");
                 box.IsChecked = false; box.RaiseEvent(new RoutedEventArgs(CheckBox.ClickEvent)); click(picker, "确定关联");

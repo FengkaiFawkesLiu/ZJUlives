@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -120,7 +120,7 @@ public sealed partial class MainWindow
             ? "已退出学校账号：课程、考试及其关联已清除，笔记、待办与其他活动保留。"
             : "本次会话已停止，但退出未完全完成：" + string.Join("；", failures);
         Render(); UpdateFreshness();
-        if (failures.Count > 0) MessageBox.Show(this, string.Join("\n", failures), "退出未完全完成");
+        if (failures.Count > 0) UiMessage.Show(this, string.Join("\n", failures), "退出未完全完成");
     }
     UIElement HolidayBanner(DateTime day)
     {
