@@ -109,15 +109,20 @@ public sealed class MarkdownEditor : DockPanel
     readonly TextBlock hint = Text("Markdown · 所有内容保存在本地", 11, Muted);
     public MarkdownEditor(string source, Action changed)
     {
-        var tools = new WrapPanel { Margin = new Thickness(0, 0, 0, 8) }; SetDock(tools, Dock.Top); Children.Add(tools);
-        void Tool(string label, string before, string after = "", string placeholder = "文字") { var b = Button(label, () => Insert(before, after, placeholder)); b.Focusable = false; b.Padding = new Thickness(8, 6, 8, 6); tools.Children.Add(b); }
+        var tools = new WrapPanel { Margin = new Thickness(10,8,10,8) }; var surface=new Border{Background=NoteEditorUi.Toolbar,Child=tools};SetDock(surface, Dock.Top); Children.Add(surface);
+        var more=new WrapPanel{Visibility=Visibility.Collapsed,Margin=new Thickness(10,0,10,8)};SetDock(more,Dock.Top);Children.Add(more);
+        void Tool(string label, string before, string after = "", string placeholder = "文字") { var b = NoteEditorUi.Action(label, () => Insert(before, after, placeholder)); b.Focusable = false; (label is "引用" or "代码" or "表格" or "数学公式"?more:tools).Children.Add(b); }
         Tool("标题", "\n## ", "\n", "标题"); Tool("粗体", "**", "**"); Tool("斜体", "*", "*"); Tool("列表", "\n- ", "\n"); Tool("待办", "\n- [ ] ", "\n", "待办事项"); Tool("引用", "\n> ", "\n"); Tool("代码", "\n```\n", "\n```\n", "代码"); Tool("链接", "[", "](https://example.com)", "链接名称"); Tool("表格", "\n| 项目 | 内容 |\n| --- | --- |\n| ", " | 内容 |\n", "项目"); Tool("数学公式", "\n$$\n", "\n$$\n", @"\frac{a}{b}");
-        var mode = Combo(new[] { "分栏预览", "仅编辑", "仅预览" }, "分栏预览"); tools.Children.Add(mode);
+        tools.Children.Add(NoteEditorUi.Disclosure("更多",more));
+        var mode = Combo(new[] { "分栏预览", "仅编辑", "仅预览" }, "仅编辑");NoteEditorUi.AnimateMenu(mode); tools.Children.Add(mode);
         SetDock(hint, Dock.Bottom); hint.Margin = new Thickness(0, 8, 0, 0); Children.Add(hint);
         var panes = new Grid(); panes.ColumnDefinitions.Add(new()); panes.ColumnDefinitions.Add(new() { Width = new GridLength(8) }); panes.ColumnDefinitions.Add(new()); Children.Add(panes);
         panes.Children.Add(Source); Grid.SetColumn(Preview, 2); panes.Children.Add(Preview);
         var splitter = new GridSplitter { Width = 6, HorizontalAlignment = HorizontalAlignment.Center, Background = Line }; Grid.SetColumn(splitter, 1); panes.Children.Add(splitter);
         mode.SelectionChanged += (_, _) => { int n = mode.SelectedIndex; Source.Visibility = n == 2 ? Visibility.Collapsed : Visibility.Visible; Preview.Visibility = n == 1 ? Visibility.Collapsed : Visibility.Visible; splitter.Visibility = n == 0 ? Visibility.Visible : Visibility.Collapsed; panes.ColumnDefinitions[0].Width = new GridLength(n == 2 ? 0 : 1, GridUnitType.Star); panes.ColumnDefinitions[1].Width = new GridLength(n == 0 ? 8 : 0); panes.ColumnDefinitions[2].Width = new GridLength(n == 1 ? 0 : 1, GridUnitType.Star); if (n != 1) Refresh(); };
+        Source.Background=NoteEditorUi.Paper;Source.BorderThickness=new Thickness(0);Source.FocusVisualStyle=null;Source.Padding=new Thickness(12);Preview.Background=NoteEditorUi.Paper;
+        var paperTone=Combo(new[]{"柔白","米白"},"柔白");more.Children.Add(NoteEditorUi.Setting("纸面",paperTone));paperTone.SelectionChanged+=(_,_)=>{Source.Background=Preview.Background=paperTone.SelectedIndex==1?Brush("#F5F0E4"):NoteEditorUi.Paper;};
+        Preview.Visibility=Visibility.Collapsed;splitter.Visibility=Visibility.Collapsed;panes.ColumnDefinitions[1].Width=new GridLength(0);panes.ColumnDefinitions[2].Width=new GridLength(0);
         Source.Text = source; Refresh();
         Source.TextChanged += (_, _) => { changed(); timer.Stop(); timer.Start(); };
         timer.Tick += (_, _) => { timer.Stop(); Refresh(); }; Unloaded += (_, _) => timer.Stop();

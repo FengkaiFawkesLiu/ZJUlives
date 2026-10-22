@@ -27,7 +27,8 @@ internal sealed class GraphPhysics
     public void Stop() { foreach (var key in keys) velocities[key] = new Vector(); }
     public double Step(double width, double height)
     {
-        var force = keys.ToDictionary(k => k, k => new Vector((width / 2 - positions[k].X) * .0018, (height / 2 - positions[k].Y) * .0018));
+        var center=keys.Length==0?new Point():Held!=null?positions[Held]:new Point(positions.Values.Average(p=>p.X),positions.Values.Average(p=>p.Y));
+        var force = keys.ToDictionary(k => k, k => new Vector((center.X - positions[k].X) * .0018, (center.Y - positions[k].Y) * .0018));
         for (int i = 0; i < keys.Length; i++) for (int j = i + 1; j < keys.Length; j++)
         {
             var delta = positions[keys[j]] - positions[keys[i]];
@@ -49,10 +50,7 @@ internal sealed class GraphPhysics
             var v = (velocities[key] + force[key]) * .88;
             v = new Vector(Math.Clamp(v.X, -12, 12), Math.Clamp(v.Y, -12, 12));
             var next = positions[key] + v;
-            var bounded = new Point(Math.Clamp(next.X, 85, width - 85), Math.Clamp(next.Y, 45, height - 80));
-            if (bounded.X != next.X) v.X = 0;
-            if (bounded.Y != next.Y) v.Y = 0;
-            positions[key] = bounded; velocities[key] = v; speed += v.Length;
+            positions[key] = next; velocities[key] = v; speed += v.Length;
         }
         return speed;
     }

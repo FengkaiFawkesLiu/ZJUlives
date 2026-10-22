@@ -90,7 +90,7 @@ public static class NotesModel
         if (data.NoteLibraries == null || data.NoteLibraries.Count == 0 || data.NoteLibraries.Select(l => l.Id).Distinct().Count() != data.NoteLibraries.Count) throw new InvalidDataException("笔记库数据不合法。");
         foreach (var library in data.NoteLibraries)
         {
-            if (string.IsNullOrWhiteSpace(library.Id) || string.IsNullOrWhiteSpace(library.Name) || library.Name.Length > 80 || library.Positions == null || library.Positions.Values.Any(p => !double.IsFinite(p.X) || !double.IsFinite(p.Y) || p.X < 0 || p.Y < 0 || p.X > 10000 || p.Y > 10000)) throw new InvalidDataException("笔记库名称或图谱位置不合法。");
+            if (string.IsNullOrWhiteSpace(library.Id) || string.IsNullOrWhiteSpace(library.Name) || library.Name.Length > 80 || library.Positions == null || library.Positions.Values.Any(p => !double.IsFinite(p.X) || !double.IsFinite(p.Y))) throw new InvalidDataException("笔记库名称或图谱位置不合法。");
         }
         foreach (var note in data.Items.Where(i => i.Kind == "笔记"))
         {
@@ -131,5 +131,3 @@ public static class NotesModel
         catch { store.Data = JsonSerializer.Deserialize<AppData>(before)!; throw; }
     }
 }
-
-

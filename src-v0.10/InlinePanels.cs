@@ -317,12 +317,13 @@ public static class UiMessage
         };
         foreach (var (label, value) in choices)
         {
-            var button = Theme.Button(label, () => { result = value; panel.Close(); });
+            string display=caption=="离开笔记"?(value==MessageBoxResult.Yes?"放弃修改":"继续编辑"):label;
+            var button = Theme.Button(display, () => { result = value; panel.Close(); },caption=="离开笔记" && value==MessageBoxResult.No);
             button.IsDefault = value == defaultResult || defaultResult == MessageBoxResult.None && value == choices[0].Item2;
             actions.Children.Add(button);
         }
         body.Children.Add(actions);
-        panel.Content = new ScrollViewer { Content = new Border { Padding = new Thickness(24), Child = body } };
+        panel.Content = new ScrollViewer { Background=Theme.Brush("#EFF3E9"), Content = new Border { Background=Theme.Brush("#EFF3E9"), Padding = new Thickness(24), Child = body } };
         panel.ShowDialog(); return result;
     }
 }

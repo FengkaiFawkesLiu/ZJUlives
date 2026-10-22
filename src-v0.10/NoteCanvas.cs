@@ -14,7 +14,7 @@ public sealed class NoteCanvas : DockPanel
 {
     public InkCanvas Ink { get; } = new() { Background = Brushes.Transparent, IsHitTestVisible = false, EditingMode = InkCanvasEditingMode.None, DefaultDrawingAttributes = new() { Color = Colors.DarkSlateGray, Width = 3, Height = 3, FitToCurve = true } };
     public ScrollViewer Scroll { get; }
-    public Grid Paper { get; } = new() { Background = NoteEditorUi.Paper, HorizontalAlignment = HorizontalAlignment.Center, MinHeight = 780 };
+    public Grid Paper { get; } = new() { Background = NoteEditorUi.Paper, HorizontalAlignment = HorizontalAlignment.Left, MinHeight = 780 };
     readonly RichTextBox editor;
     readonly Action changed;
     readonly WrapPanel controls = new() { Visibility = Visibility.Collapsed, Margin = new Thickness(0, 0, 0, 8) };
@@ -26,7 +26,7 @@ public sealed class NoteCanvas : DockPanel
     public void SetHeader(FrameworkElement header)
     {
         Scroll.Content=null;
-        documentSurface=new StackPanel();
+        documentSurface=new StackPanel { HorizontalAlignment=HorizontalAlignment.Left };
         documentSurface.Children.Add(header);documentSurface.Children.Add(Paper);
         Scroll.Content=documentSurface;FitPaper();
     }
@@ -112,4 +112,3 @@ public static class NotePalette
 {
     public static readonly (string Name, Color Color)[] Colors = { ("墨色", System.Windows.Media.Colors.DarkSlateGray), ("黑色", System.Windows.Media.Colors.Black), ("蓝色", System.Windows.Media.Colors.RoyalBlue), ("红色", System.Windows.Media.Colors.Firebrick), ("绿色", System.Windows.Media.Colors.SeaGreen), ("紫色", System.Windows.Media.Colors.DarkOrchid), ("橙色", System.Windows.Media.Colors.DarkOrange), ("灰色", System.Windows.Media.Colors.Gray) };
 }
-

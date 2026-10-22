@@ -21,9 +21,10 @@ public sealed partial class MainWindow
         check(points["a"] == new Point(180,200) && (points["b"] - before).Length > 20, "Dragged node stays held while connected nodes follow");
         engine.Held = null; double speed = 0;
         for (int i = 0; i < 1100; i++) speed = engine.Step(1150,820);
-        check(speed < .035 && points.Values.All(p => double.IsFinite(p.X) && double.IsFinite(p.Y) && p.X >= 85 && p.X <= 1065 && p.Y >= 45 && p.Y <= 740), "Physics settles within canvas bounds");
+        check(speed < .035 && points.Values.All(p => double.IsFinite(p.X) && double.IsFinite(p.Y)), "Physics settles in unbounded world coordinates");
         points["a"] = points["b"]; for (int i=0;i<100;i++) engine.Step(1150,820);
         check(points.Values.All(p=>double.IsFinite(p.X) && double.IsFinite(p.Y)), "Overlapping nodes do not produce invalid coordinates");
+        engine.Held="a";engine.Move("a",new Point(-18000,22000));engine.Step(1150,820);check(points["a"]==new Point(-18000,22000),"Dragging accepts negative positions and positions beyond former 10000 limit");
         var library = CurrentLibrary;
         var note = new Item { Kind="笔记", Title="救援训练", LibraryId=library.Id };
         var other = new Item { Kind="笔记", Title="测试链接", LibraryId=library.Id };
@@ -38,8 +39,9 @@ public sealed partial class MainWindow
         var canvas = Visuals<Canvas>(body).First(c=>c.Children.OfType<Line>().Any());
         check(canvas.Background == Brushes.Transparent, "Graph canvas is transparent");
         check(!Visuals<TextBlock>(body).Any(t=>t.Text.Contains("布局已保存")), "No lower-left layout status text");
-        var graphScroll = Visuals<ScrollViewer>(body).First(s=>s.Content==canvas);
+        var graphScroll = Visuals<GraphViewport>(body).Single();
         check(graphScroll.FocusVisualStyle == null, "No rectangular graph focus adorner");
+        graphScroll.ScrollToHorizontalOffset(-20000);graphScroll.ScrollToVerticalOffset(22000);check(graphScroll.HorizontalOffset==-20000&&graphScroll.VerticalOffset==22000,"Camera pans beyond all viewport edges");graphScroll.Fit(new[]{new Point(-18000,-18000),new Point(18000,18000)});check(graphScroll.Zoom.ScaleX<.35,"Fit all supports large graphs below former minimum zoom");graphScroll.Fit(new[]{new Point(350,350),new Point(550,500)});
         Theme.Screenshot((FrameworkElement)Content,Path.Combine(dir,"graph-glass.png"));
         node.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice,0,MouseButton.Left) { RoutedEvent=UIElement.MouseLeftButtonDownEvent });
         check(dot.Fill is RadialGradientBrush, "Press shows colored transparent glass node");
@@ -55,5 +57,6 @@ public sealed partial class MainWindow
         var save = Visuals<Button>(body).First(b=>(b.Content as string)=="保存布局"); save.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         var reloaded = new Store(store.Root);
         check(reloaded.Data.NoteLibraries.Single(l=>l.Id==library.Id).Positions.Count==3,"Graph positions survive save and reload");
+        library.Positions[NotesModel.Key(note)]=new(){X=-18000,Y=22000};store.Save();check(new Store(store.Root).Data.NoteLibraries.Single(l=>l.Id==library.Id).Positions[NotesModel.Key(note)].X==-18000,"Signed world coordinates survive local save and reload");
     }
 }

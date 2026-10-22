@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -143,18 +143,19 @@ public sealed partial class MainWindow
         var grid = new Grid(); dock.Children.Add(GraphGlass.Panel(grid));
         var editorDock = new DockPanel(); grid.Children.Add(editorDock);
         var title = new TextBox { Text = draft.Title, FontFamily=new FontFamily("Microsoft YaHei UI"), Foreground=Ink, FontSize = 29, FontWeight = FontWeights.SemiBold, MaxLength = 300, Background = Brushes.Transparent, BorderThickness = new Thickness(0), FocusVisualStyle = null, Padding = new Thickness(0) };
-        var titleColumn=new Border { Child=Stack(Text(library.Name+" / 学习记录",11,Muted),Space(14),title),HorizontalAlignment=HorizontalAlignment.Center,Padding=new Thickness(24,38,24,18) };
+        title.FontSize=19;
+        var titleColumn=new Border { Child=title,HorizontalAlignment=HorizontalAlignment.Left,Padding=new Thickness(12,8,12,8) };
         var titleSurface=new Border { Background=NoteEditorUi.Paper,Child=titleColumn };
         INoteCodec codec = new RichNoteCodec();
         var editor = new RichTextBox { Background = NoteEditorUi.Paper, FocusVisualStyle = null, BorderThickness = new Thickness(0), SelectionBrush = Brush("#80A3BDA7"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, AcceptsTab = true };
         try { editor.Document = codec.Decode(draft.NoteFormat is "rtf-v1" or "rtf-v2" ? draft.NoteBody : "", draft.Note); editor.Document.Foreground = Ink; }
         catch (Exception ex) { UiMessage.Show(this, "笔记正文格式无法读取，已停止打开以保护原数据：" + ex.Message); return; }
-        var tools = new WrapPanel { Margin = new Thickness(14,11,14,11) }; DockPanel.SetDock(tools, Dock.Top); editorDock.Children.Add(tools);
-        var paragraphType=Combo(new[]{"正文","标题","引用"},"正文");paragraphType.Width=78;NoteEditorUi.AnimateMenu(paragraphType);tools.Children.Add(paragraphType);
+        var tools = new WrapPanel { Margin = new Thickness(10,8,10,8) }; var toolSurface=new Border{Background=NoteEditorUi.Toolbar,Child=tools}; DockPanel.SetDock(toolSurface, Dock.Top); editorDock.Children.Add(toolSurface);
+        var paragraphType=Combo(new[]{"正文","标题","小标题","引用"},"正文");paragraphType.MinWidth=92;NoteEditorUi.AnimateMenu(paragraphType);tools.Children.Add(paragraphType);
         tools.Children.Add(new Border { Width=1,Height=18,Background=Brush("#30607D60"),Margin=new Thickness(7,0,7,0) });
-        paragraphType.SelectionChanged+=(_,_)=>{if(paragraphType.SelectedIndex==1){editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty,24.0);editor.Selection.ApplyPropertyValue(TextElement.FontWeightProperty,FontWeights.SemiBold);}else {editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty,16.0);editor.Selection.ApplyPropertyValue(TextElement.FontWeightProperty,FontWeights.Normal);}editor.Focus();};
+        paragraphType.SelectionChanged+=(_,_)=>{int n=paragraphType.SelectedIndex;editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty,n==1?24.0:n==2?20.0:16.0);editor.Selection.ApplyPropertyValue(TextElement.FontWeightProperty,n is 1 or 2?FontWeights.SemiBold:FontWeights.Normal);editor.Focus();};
         var extraTools = new WrapPanel { Visibility=Visibility.Collapsed, Margin=new Thickness(8,0,8,8), Name="NoteInsertTools" }; DockPanel.SetDock(extraTools,Dock.Top); editorDock.Children.Add(extraTools);
-        var formatTools = new StackPanel { Visibility=Visibility.Collapsed, Margin=new Thickness(8,0,8,8), Name="NoteFormatTools" }; DockPanel.SetDock(formatTools,Dock.Top); editorDock.Children.Add(formatTools);
+        var formatTools = new StackPanel { Visibility=Visibility.Collapsed, Margin=new Thickness(8,8,8,8), Name="NoteFormatTools" }; DockPanel.SetDock(formatTools,Dock.Top); editorDock.Children.Add(formatTools);
         var extraFormatting = new WrapPanel(); formatTools.Children.Add(extraFormatting);
         var legacyFormatting=new WrapPanel();
         DockPanel.SetDock(titleSurface,Dock.Top); editorDock.Children.Add(titleSurface); editorDock.Children.Add(editor);
@@ -183,6 +184,7 @@ public sealed partial class MainWindow
         Tool("正文", () => { editor.Selection.ApplyPropertyValue(TextElement.FontSizeProperty, 15.0); editor.Selection.ApplyPropertyValue(TextElement.FontWeightProperty, FontWeights.Normal); editor.Focus(); });
         Tool("项目符号", () => EditingCommands.ToggleBullets.Execute(null, editor)); Tool("编号", () => EditingCommands.ToggleNumbering.Execute(null, editor));
         Tool("撤销", () => { if (editor.CanUndo) editor.Undo(); }); Tool("重做", () => { if (editor.CanRedo) editor.Redo(); });
+        editor.SelectionChanged+=(_,_)=>{foreach(var button in tools.Children.OfType<Button>()){var name=System.Windows.Automation.AutomationProperties.GetName(button);if(name is "粗体" or "斜体" or "下划线"){bool selected=name=="粗体"?Equals(editor.Selection.GetPropertyValue(TextElement.FontWeightProperty),FontWeights.Bold):name=="斜体"?Equals(editor.Selection.GetPropertyValue(TextElement.FontStyleProperty),FontStyles.Italic):editor.Selection.GetPropertyValue(Inline.TextDecorationsProperty) is TextDecorationCollection d && d.Contains(TextDecorations.Underline[0]);NoteEditorUi.Selected(button,selected);}}};
         Tool("插入图片", () =>
         {
             var picker = new OpenFileDialog { Filter = "图片|*.png;*.jpg;*.jpeg;*.bmp", Title = "插入本地图片" }; if (picker.ShowDialog(this) != true) return;
@@ -205,8 +207,9 @@ public sealed partial class MainWindow
         var sideFrame = new Border { Name="NoteRelations", Width=280, MaxHeight=600, HorizontalAlignment=HorizontalAlignment.Right, VerticalAlignment=VerticalAlignment.Top, Margin=new Thickness(0,8,8,0), Padding=new Thickness(18), CornerRadius=new CornerRadius(14), Background=Brush("#DFE9DC"), BorderBrush=GlassTheme.Edge, BorderThickness=new Thickness(1), Child=sideScroll, Visibility=Visibility.Collapsed };
         Panel.SetZIndex(sideFrame,10);grid.Children.Add(sideFrame);
         tools.Children.Add(new Border { Width=1,Height=18,Background=Brush("#30607D60"),Margin=new Thickness(7,0,7,0) });
-        tools.Children.Add(NoteEditorUi.Action("插入",()=>NoteEditorUi.Toggle(extraTools),"plus"));
-        tools.Children.Add(NoteEditorUi.Action("排版",()=>NoteEditorUi.Toggle(formatTools),"settings"));
+        tools.Children.Add(NoteEditorUi.Disclosure("插入",extraTools,"plus"));
+        tools.Children.Add(NoteEditorUi.Disclosure("排版",formatTools,"settings"));
+        toolSurface.Child=null;toolSurface.Child=NoteEditorUi.ToolbarSelection(tools);
         var relatedButton=NoteEditorUi.Action("关联 · "+draft.NoteLinks.Count,()=>NoteEditorUi.Toggle(sideFrame)); DockPanel.SetDock(relatedButton,Dock.Right);actions.Children.Add(relatedButton);
         var noteList=new StackPanel();noteList.Children.Add(Text(library.Name,13,bold:true));noteList.Children.Add(Space(16));
         foreach(var peer in store.Data.Items.Where(i=>i.Kind=="笔记"&&i.LibraryId==library.Id&&!i.Cancelled).ToList()) {var entry=NoteEditorUi.Action(peer.Title,()=>{dialog.Close();if(dialog.IsClosed)EditKnowledgeNote(peer);});entry.HorizontalContentAlignment=HorizontalAlignment.Left;noteList.Children.Add(entry);}
@@ -215,7 +218,7 @@ public sealed partial class MainWindow
         var links = new StackPanel(); var files = new StackPanel(); var staged = new Dictionary<Attachment, string>();
         void Mark() { dirty = true; status.Text = "有未保存的修改 · Ctrl+S 保存"; }
         MarkdownEditor? markdownEditor = null;
-        if (markdown) { editorDock.Children.Remove(tools); editorDock.Children.Remove(editor); markdownEditor = new MarkdownEditor(draft.NoteBody, Mark); editorDock.Children.Add(markdownEditor); }
+        if (markdown) { editorDock.Children.Remove(toolSurface); editorDock.Children.Remove(editor); markdownEditor = new MarkdownEditor(draft.NoteBody, Mark); editorDock.Children.Add(markdownEditor); }
         else
         {
             editorDock.Children.Remove(editor);
@@ -229,7 +232,7 @@ public sealed partial class MainWindow
             widthChoice.SelectionChanged+=(_,_)=>{paper.SetWide(widthChoice.SelectedIndex==1);};
             extraFormatting.Children.Add(NoteEditorUi.Setting("纸面",paperTone));
             paperTone.SelectionChanged+=(_,_)=>{var tone=(string)paperTone.SelectedItem=="米白"?Brush("#F5F0E4"):NoteEditorUi.Paper;paper.SetPaperBrush(tone);titleSurface.Background=tone;};
-            void AlignTitle() { titleColumn.Width=paper.Paper.Width;titleColumn.Padding=new Thickness(editor.Document.PagePadding.Left,38,editor.Document.PagePadding.Right,18); }
+            void AlignTitle() { titleColumn.Width=paper.Paper.Width;titleColumn.Padding=new Thickness(12,8,12,8); }
             paper.SizeChanged+=(_,_)=>AlignTitle();paper.Paper.SizeChanged+=(_,_)=>AlignTitle();AlignTitle();
             editorDock.Children.Remove(titleSurface);paper.SetHeader(titleSurface);
             editorDock.Children.Add(paper);
@@ -293,7 +296,7 @@ public sealed partial class MainWindow
             if (UiMessage.Show(dialog, "删除这篇笔记及其关联连线？其他笔记和课程将保留。", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
             if (Commit(() => { store.Data.Items.RemoveAll(i => i.Id == draft.Id); foreach (var n in store.Data.Items) { n.NoteLinks.RemoveAll(l => l.Key == "note:" + draft.Id); if (n.ParentId == draft.Id) n.ParentId = null; } library.Positions.Remove("note:" + draft.Id); })) { closing = true; dialog.Close(); }
         }); extraTools.Children.Add(delete); }
-        var breadcrumb=NoteEditorUi.Action("知识笔记  ›  "+library.Name,()=>dialog.Close());breadcrumb.Foreground=Muted;breadcrumb.HorizontalContentAlignment=HorizontalAlignment.Left;actions.Children.Add(breadcrumb);
+        var breadcrumb=NoteEditorUi.Action("学习记录",()=>dialog.Close());breadcrumb.Foreground=Muted;breadcrumb.HorizontalContentAlignment=HorizontalAlignment.Left;actions.Children.Add(breadcrumb);
         var footer=Row(status,Text("   Ctrl + S 保存",11,Muted));footer.HorizontalAlignment=HorizontalAlignment.Right;
         var footSurface=new Border { Background=NoteEditorUi.Paper,Padding=new Thickness(16,12,22,12),Child=footer };DockPanel.SetDock(footSurface,Dock.Bottom);editorDock.Children.Insert(0,footSurface);
         title.TextChanged += (_, _) => Mark(); editor.TextChanged += (_, _) => Mark();
@@ -308,8 +311,3 @@ public sealed partial class MainWindow
         dialog.Loaded += (_, _) => { title.Focus(); dirty = false; }; dialog.ShowDialog();
     }
 }
-
-
-
-
-

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -38,11 +38,11 @@ public sealed partial class MainWindow
         var legend = Row(Text("● 笔记   ", 11, Brush("#8B79AF")), Text("● 课程   ", 11, Green), Text("● 其他事项   ", 11, Brush("#B38A4D")), Text("点击打开 · 拖动节点或空白处", 11, Muted)); legend.Margin = new Thickness(14, 10, 14, 10); DockPanel.SetDock(legend, Dock.Top); dock.Children.Add(legend);
         var bottom = new DockPanel { Margin = new Thickness(14, 8, 14, 12) }; DockPanel.SetDock(bottom, Dock.Bottom); dock.Children.Add(bottom);
         var hint = quickStatus; // Operational feedback belongs in the top banner, not the lower-left corner.
-        var slider = new Slider { Minimum = .35, Maximum = 1.8, Value = .7, Width = 125, VerticalAlignment = VerticalAlignment.Center, ToolTip = "缩放图谱" };
+        var slider = new Slider { Minimum = .01, Maximum = 1.8, Value = .7, Width = 125, VerticalAlignment = VerticalAlignment.Center, ToolTip = "缩放图谱" };
         var zoom = Row(Text("缩放", 11, Muted), slider); DockPanel.SetDock(zoom, Dock.Right); bottom.Children.Add(zoom); bottom.Children.Add(new Border());
-        var scroll = new ScrollViewer { FocusVisualStyle = null, HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, VerticalScrollBarVisibility = ScrollBarVisibility.Hidden, PanningMode = PanningMode.Both };
+
         var canvas = new Canvas { Width = 1150, Height = 820, Background = Brushes.Transparent, ClipToBounds = false };
-        var scale = new ScaleTransform(slider.Value, slider.Value); canvas.LayoutTransform = scale; scroll.Content = canvas; dock.Children.Add(scroll);
+        var scroll=new GraphViewport(canvas); var scale=scroll.Zoom;scale.ScaleX=scale.ScaleY=slider.Value;dock.Children.Add(scroll);
         if (nodes.Count == 0)
         {
             var empty = Stack(Text(query.Length > 0 ? "没有找到相关节点" : "让想法开始连接", 23, Green, true), Space(12), Text("新建笔记，通过“关联笔记”和“关联课程”建立连线。", 14, Muted), Space(20), Button("＋ 新建笔记", () => EditKnowledgeNote(null), true));
@@ -134,7 +134,7 @@ public sealed partial class MainWindow
             {
                 if (origin is not Point start) return; var current = e.GetPosition(canvas); var delta = current - start;
                 if (delta.Length > 4) moved = true;
-                if (moved) { physics.Move(node.Key, new Point(Math.Clamp(initial.X + delta.X, 85, canvas.Width - 85), Math.Clamp(initial.Y + delta.Y, 45, canvas.Height - 80))); lastMove = DateTime.UtcNow; dirty = true; Position(); DrawLines(); Wake(); }
+                if (moved) { physics.Move(node.Key, new Point(initial.X + delta.X, initial.Y + delta.Y)); lastMove = DateTime.UtcNow; dirty = true; Position(); DrawLines(); Wake(); }
             };
             void Release()
             {
@@ -146,17 +146,18 @@ public sealed partial class MainWindow
             element.LostMouseCapture += (_, _) => { if (origin != null) Release(); };
         }
         DrawLines(); updateQuickAppearance?.Invoke();
-        slider.ValueChanged += (_, _) => { scale.ScaleX = scale.ScaleY = slider.Value; foreach (var element in elements.Values) element.RenderTransform = new ScaleTransform(1 / slider.Value, 1 / slider.Value, 75, 27); foreach (var line in lines.Values) line.StrokeThickness = 1.2 / slider.Value; };
+        slider.ValueChanged += (_, _) => { scroll.ZoomAt(slider.Value,new Point(scroll.ActualWidth/2,scroll.ActualHeight/2)); foreach (var element in elements.Values) element.RenderTransform = new ScaleTransform(1 / slider.Value, 1 / slider.Value, 75, 27); foreach (var line in lines.Values) line.StrokeThickness = 1.2 / slider.Value; };
         scroll.PreviewMouseWheel += (_, e) => { slider.Value = Math.Clamp(slider.Value + (e.Delta > 0 ? .08 : -.08), slider.Minimum, slider.Maximum); e.Handled = true; };
         Point? pan = null; double horizontal = 0, vertical = 0;
-        canvas.MouseLeftButtonDown += (_, e) => { if (e.OriginalSource != canvas) return; pan = e.GetPosition(scroll); horizontal = scroll.HorizontalOffset; vertical = scroll.VerticalOffset; canvas.CaptureMouse(); canvas.Cursor = Cursors.ScrollAll; };
-        canvas.MouseMove += (_, e) => { if (pan is Point p) { var delta = e.GetPosition(scroll) - p; scroll.ScrollToHorizontalOffset(horizontal - delta.X); scroll.ScrollToVerticalOffset(vertical - delta.Y); } };
-        canvas.MouseLeftButtonUp += (_, _) => { pan = null; canvas.ReleaseMouseCapture(); canvas.Cursor = Cursors.Arrow; };
-        canvas.LostMouseCapture += (_, _) => { pan = null; canvas.Cursor = Cursors.Arrow; };
+        scroll.MouseLeftButtonDown += (_, e) => { if (e.OriginalSource != canvas && e.OriginalSource != scroll) return; pan = e.GetPosition(scroll); horizontal = scroll.HorizontalOffset; vertical = scroll.VerticalOffset; scroll.CaptureMouse(); scroll.Cursor = Cursors.ScrollAll; };
+        scroll.MouseMove += (_, e) => { if (pan is Point p) { var delta = e.GetPosition(scroll) - p; scroll.ScrollToHorizontalOffset(horizontal - delta.X); scroll.ScrollToVerticalOffset(vertical - delta.Y); } };
+        scroll.MouseLeftButtonUp += (_, _) => { pan = null; scroll.ReleaseMouseCapture(); scroll.Cursor = Cursors.Arrow; };
+        scroll.LostMouseCapture += (_, _) => { pan = null; scroll.Cursor = Cursors.Arrow; };
+        var fit = Button("显示全部",()=>{slider.Value=scroll.Fit(positions.Values);}); fit.Padding=new Thickness(8,3,8,3);DockPanel.SetDock(fit,Dock.Right);bottom.Children.Insert(0,fit);
         var reset = Button("重排", () => { var layout = ForcePositions(nodes, edges); foreach (var p in layout) positions[p.Key] = p.Value; physics.Stop(); dirty = true; DrawNodes(); Wake(); }); reset.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(reset, Dock.Right); bottom.Children.Insert(0, reset);
         var save = Button("保存布局", () => { timer.Stop(); physics.Stop(); dirty = false; SavePositions(); }, true); save.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(save, Dock.Right); bottom.Children.Insert(0, save);
         scroll.Loaded += (_, _) => {
-            slider.Value = quickNoteKey != null && quickGraphZoom.HasValue ? quickGraphZoom.Value : Math.Clamp(Math.Min(scroll.ViewportWidth / 1150, scroll.ViewportHeight / 820), .35, 1);
+            slider.Value = quickNoteKey != null && quickGraphZoom.HasValue ? quickGraphZoom.Value : scroll.Fit(positions.Values);
             if (quickNoteKey != null && quickGraphZoom.HasValue) { scroll.UpdateLayout(); scroll.ScrollToHorizontalOffset(quickGraphHorizontal); scroll.ScrollToVerticalOffset(quickGraphVertical); }
         };
         return GraphGlass.Panel(dock);
@@ -174,7 +175,7 @@ public sealed partial class MainWindow
                 var push = delta / distance * (90000 / (distance * distance)); force[nodes[i].Key] += push; force[nodes[j].Key] -= push;
             }
             foreach (var edge in edges) { var delta = p[edge.To] - p[edge.From]; double length = Math.Max(1, delta.Length); var pull = delta / length * (length - 150) * .035; force[edge.From] += pull; force[edge.To] -= pull; }
-            foreach (var node in nodes) { var next = p[node.Key] + force[node.Key]; p[node.Key] = new Point(Math.Clamp(next.X, 90, 1060), Math.Clamp(next.Y, 60, 720)); }
+            foreach (var node in nodes) { var next = p[node.Key] + force[node.Key]; p[node.Key] = next; }
         }
         return p;
     }

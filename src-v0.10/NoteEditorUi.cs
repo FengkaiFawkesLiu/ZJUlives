@@ -8,6 +8,12 @@ using System.Windows.Media.Animation;
 namespace Shike;
 internal static class NoteEditorUi
 {
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Button,Action> closeDisclosures=new();
+    static void ClosePeers(FrameworkElement current)
+    {
+        if(current.Parent is not Panel group)return;
+        foreach(UIElement child in group.Children){if(ReferenceEquals(child,current))continue;if(child is Button b && closeDisclosures.TryGetValue(b,out var close))close();if(child is ComboBox combo)combo.IsDropDownOpen=false;}
+    }
     public static readonly Brush Paper = Theme.Brush("#F7F8F2");
     public static FrameworkElement Icon(string key, Brush? color=null)
     {
@@ -31,14 +37,43 @@ internal static class NoteEditorUi
         if(icon!=null){var row=new StackPanel { Orientation=Orientation.Horizontal };row.Children.Add(Icon(icon));var text=Theme.Text(label,12);text.Margin=new Thickness(6,0,0,0);row.Children.Add(text);b.Content=row;}
         System.Windows.Automation.AutomationProperties.SetName(b,label);return b;
     }
+    public static Brush Toolbar => new LinearGradientBrush(Color.FromRgb(211,226,215),Color.FromRgb(233,237,222),0);
+    public static void Selected(Button button,bool selected)
+    {
+        if(Equals(button.Tag,selected))return;button.Tag=selected;
+        button.BorderBrush=GlassTheme.Edge;button.BorderThickness=new Thickness(1);
+        if(button.Background is not SolidColorBrush brush || brush.IsFrozen){brush=new SolidColorBrush(Colors.Transparent);button.Background=brush;}
+        var to=Color.FromArgb(selected?(byte)70:(byte)0,255,255,255);
+        brush.BeginAnimation(SolidColorBrush.ColorProperty,Motion.Enabled?new ColorAnimation(brush.Color,to,TimeSpan.FromMilliseconds(500)):null);if(!Motion.Enabled)brush.Color=to;
+    }
+    public static Button Disclosure(string label, FrameworkElement panel, string? icon=null)
+    {
+        var rotation=new RotateTransform();
+        var arrow=new System.Windows.Shapes.Path { Data=Geometry.Parse("M 0,0 L 4,4 0,8"),Stroke=Theme.Ink,StrokeThickness=1.4,Width=5,Height=9,Margin=new Thickness(9,0,2,0),VerticalAlignment=VerticalAlignment.Center,RenderTransformOrigin=new Point(.5,.5),RenderTransform=rotation };
+        var b=Action(label,()=>{},icon);var content=b.Content;b.Content=null;var row=new StackPanel{Orientation=Orientation.Horizontal};
+        row.Children.Add(content is UIElement element?element:Theme.Text(label,12));row.Children.Add(arrow);
+        var selection=new Border{CornerRadius=new CornerRadius(10),BorderBrush=GlassTheme.Edge,BorderThickness=new Thickness(1),Background=Theme.Brush("#35FFFFFF"),Opacity=0,IsHitTestVisible=false};
+        var holder=new Grid();holder.Children.Add(selection);holder.Children.Add(row);b.Content=holder;
+        void VisualState(bool open){b.Tag=open;GlassSelectionLayer.Animate(rotation,RotateTransform.AngleProperty,open?90:0);GlassSelectionLayer.Animate(selection,UIElement.OpacityProperty,open?1:0);}
+        closeDisclosures.Add(b,()=>{if(panel.Tag is true)Toggle(panel);VisualState(false);});
+        b.Click+=(_,_)=>{if(panel.Tag is not true)ClosePeers(b);Toggle(panel);VisualState(panel.Tag is true);};
+        return b;
+    }
+    public static GlassSelectionLayer ToolbarSelection(WrapPanel tools)
+    {
+        var layer=new GlassSelectionLayer(tools,11,2);
+        tools.AddHandler(Button.ClickEvent,new RoutedEventHandler((_,e)=>{if(e.Source is Button b && closeDisclosures.TryGetValue(b,out var close))layer.Select(b.Tag is true?b:null);}));
+        foreach(UIElement child in tools.Children)if(child is ComboBox combo){combo.DropDownOpened+=(_,_)=>layer.Select(combo);combo.DropDownClosed+=(_,_)=>layer.Select(null);}
+        return layer;
+    }
     public static Border Setting(string label, FrameworkElement control)
     {
-        control.Margin = new Thickness(5,0,0,0);
+        control.Margin = new Thickness(5,0,0,0); control.VerticalAlignment=VerticalAlignment.Center;
         if(control is ComboBox combo) AnimateMenu(combo);
         var row = new StackPanel { Orientation = Orientation.Horizontal };
-        row.Children.Add(Theme.Text(label,12,Theme.Muted)); row.Children.Add(control);
+        var caption=Theme.Text(label,12,Theme.Muted);caption.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(caption); row.Children.Add(control);
         return new Border { CornerRadius=new CornerRadius(9), BorderBrush=GlassTheme.Edge, BorderThickness=new Thickness(1),
-            Background=Theme.Brush("#35FFFFFF"), Padding=new Thickness(9,1,3,1), Margin=new Thickness(0,0,8,6),Child=row };
+            Background=Theme.Brush("#35FFFFFF"), Padding=new Thickness(9,2,3,2), MinHeight=38, VerticalAlignment=VerticalAlignment.Center, Margin=new Thickness(0,0,8,0),Child=row };
     }
     public static void Toggle(FrameworkElement panel)
     {
@@ -49,10 +84,16 @@ internal static class NoteEditorUi
         if (!Motion.Enabled) { panel.Visibility=open?Visibility.Visible:Visibility.Collapsed; return; }
         panel.Visibility=Visibility.Visible;
         panel.Measure(new Size(Math.Max(1,(panel.Parent as FrameworkElement)?.ActualWidth ?? 700),double.PositiveInfinity));
-        double to=open?panel.DesiredSize.Height:0;
+        double to=open?Math.Max(0,panel.DesiredSize.Height-panel.Margin.Top-panel.Margin.Bottom):0;
         panel.ClipToBounds=true;
+        // StackPanel can retain the children's arrange size while Height animates.
+        // Animate the visible clip too, so the reveal is real on every WPF layout path.
+        double clipFrom=panel.Clip is RectangleGeometry oldClip?oldClip.Rect.Height:from;
+        double clipWidth=Math.Max(panel.DesiredSize.Width,Math.Max(panel.ActualWidth,1));
+        var clip=new RectangleGeometry(new Rect(0,0,clipWidth,to));panel.Clip=clip;
+        clip.BeginAnimation(RectangleGeometry.RectProperty,new RectAnimation(new Rect(0,0,clipWidth,clipFrom),new Rect(0,0,clipWidth,to),TimeSpan.FromMilliseconds(500)){EasingFunction=new CubicEase{EasingMode=EasingMode.EaseOut}});
         var animation=new DoubleAnimation(from,to,TimeSpan.FromMilliseconds(Motion.DurationMs)) { EasingFunction=new CubicEase { EasingMode=EasingMode.EaseOut } };
-        animation.Completed+=(_,_)=>{if(!Equals(panel.Tag,open))return;panel.BeginAnimation(FrameworkElement.HeightProperty,null);panel.Height=double.NaN;panel.Visibility=open?Visibility.Visible:Visibility.Collapsed;panel.ClipToBounds=false;};
+        animation.Completed+=(_,_)=>{if(!Equals(panel.Tag,open))return;panel.BeginAnimation(FrameworkElement.HeightProperty,null);panel.Height=double.NaN;panel.Visibility=open?Visibility.Visible:Visibility.Collapsed;panel.ClipToBounds=false;panel.Clip=null;};
         panel.BeginAnimation(FrameworkElement.HeightProperty,animation);
     }
     public static void Install(AppPanel panel)
@@ -64,20 +105,29 @@ internal static class NoteEditorUi
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid>
               <Border x:Name="edge" Background="Transparent" CornerRadius="7"/>
               <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Margin="5,4,24,4" VerticalAlignment="Center" IsHitTestVisible="False"/>
-              <Path x:Name="arrow" Data="M 0 0 L 4 4 L 8 0" Width="8" Height="4" Stroke="#365E49" StrokeThickness="1.4" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,9,0" IsHitTestVisible="False"/>
+              <Path x:Name="arrow" Data="M 0 0 L 4 4 L 0 8" Width="5" Height="9" Stroke="#365E49" StrokeThickness="1.4" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,9,0" IsHitTestVisible="False"/>
               <ToggleButton Focusable="False" IsChecked="{Binding IsDropDownOpen,RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}"><ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border Background="Transparent"/></ControlTemplate></ToggleButton.Template></ToggleButton>
-              <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="None"><Border x:Name="menu" Background="#E0EADD" BorderBrush="{DynamicResource Glass.Edge}" BorderThickness="1" CornerRadius="11" Padding="5" Margin="0,6,0,0" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="300"><ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border></Popup>
+              <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="None"><Border x:Name="menu" Background="#F0F4E9" BorderBrush="{DynamicResource Glass.Edge}" BorderThickness="1" CornerRadius="11" Padding="5" Margin="0,6,0,0" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="300"><ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border></Popup>
             </Grid><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="edge" Property="Background" Value="#285B9671"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
           </Style>
-          <Style TargetType="ComboBoxItem"><Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="Foreground" Value="#294C39"/><Setter Property="Padding" Value="10,7"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="item" Background="Transparent" CornerRadius="7" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="item" Property="Background" Value="#30548866"/></Trigger><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="item" Property="Background" Value="#60FFFFFF"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+          <Style TargetType="ComboBoxItem"><Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="Foreground" Value="#294C39"/><Setter Property="Padding" Value="10,7"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="item" Background="Transparent" CornerRadius="7" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="item" Property="Background" Value="#35FFFFFF"/></Trigger><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="item" Property="Background" Value="#60FFFFFF"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
           <Style TargetType="ScrollBar"><Setter Property="Width" Value="9"/><Setter Property="Background" Value="Transparent"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar"><Grid Background="Transparent"><Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Value="{TemplateBinding Value}" ViewportSize="{TemplateBinding ViewportSize}" IsDirectionReversed="True"><Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.DecreaseRepeatButton><Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType="Thumb"><Border CornerRadius="3" Margin="2" Background="#65738D7A"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb><Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.IncreaseRepeatButton></Track></Grid></ControlTemplate></Setter.Value></Setter></Style>
         </ResourceDictionary>
         """);
     }
     public static void AnimateMenu(ComboBox combo)
     {
+        if(Equals(combo.Tag,"animated-note-menu"))return;combo.Tag="animated-note-menu";
+        GlassSelectionLayer? layer=null;
+        void Selection(){if(layer!=null && combo.ItemContainerGenerator.ContainerFromIndex(combo.SelectedIndex) is FrameworkElement item)layer.Select(item);}
+        combo.SelectionChanged+=(_,_)=>Selection();
+        void Arrow(bool open){combo.ApplyTemplate();if(combo.Template.FindName("arrow",combo) is FrameworkElement a){a.RenderTransformOrigin=new Point(.5,.5);if(a.RenderTransform is not RotateTransform)a.RenderTransform=new RotateTransform();GlassSelectionLayer.Animate((RotateTransform)a.RenderTransform,RotateTransform.AngleProperty,open?90:0);}}
+        combo.DropDownClosed+=(_,_)=>Arrow(false);
         combo.DropDownOpened+=(_,_)=>
         {
+            ClosePeers(combo);
+            Arrow(true);
+            if(combo.Template.FindName("menu",combo) is Border frame && frame.Child is UIElement child && child is not GlassSelectionLayer){frame.Child=null;layer=new GlassSelectionLayer(child,8);frame.Child=layer;layer.PreviewMouseMove+=(_,e)=>{DependencyObject? node=e.OriginalSource as DependencyObject;while(node!=null && node is not ComboBoxItem)node=node is Visual?VisualTreeHelper.GetParent(node):null;if(node is ComboBoxItem item)layer.Select(item);};layer.MouseLeave+=(_,_)=>Selection();combo.Dispatcher.BeginInvoke(new Action(Selection));}
             if(!Motion.Enabled)return;
             if(combo.Template.FindName("menu",combo) is FrameworkElement menu)
             {

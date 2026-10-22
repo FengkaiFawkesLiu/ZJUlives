@@ -47,7 +47,7 @@ public sealed partial class MainWindow
         modal(()=>EditKnowledgeNote(saved),panel=>
         {
             var title=Visuals<TextBox>(panel).First(t=>t.MaxLength==300);title.Text="不应保存的标题";
-            Dispatcher.BeginInvoke(new Action(()=>{var confirm=Workspace.Active!;WaitForPanelLayout();click(confirm,"否");}),DispatcherPriority.ApplicationIdle);
+            Dispatcher.BeginInvoke(new Action(()=>{var confirm=Workspace.Active!;WaitForPanelLayout();click(confirm,"继续编辑");}),DispatcherPriority.ApplicationIdle);
             panel.Close();check(!panel.IsClosed && Workspace.Active==panel,"Rejecting discard preserves editor and draft");
             panel.Tag="test-abort";panel.Close();
         });
@@ -55,4 +55,3 @@ public sealed partial class MainWindow
         Motion.Enabled=false;modal(()=>EditKnowledgeNote(saved),panel=>{Visuals<Button>(panel).Single(b=>System.Windows.Automation.AutomationProperties.GetName(b)=="排版").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));check(Visuals<StackPanel>(panel).Single(p=>p.Name=="NoteFormatTools").Visibility==Visibility.Visible,"Formatting works with animations disabled");panel.Close();});Motion.Enabled=true;
     }
 }
-

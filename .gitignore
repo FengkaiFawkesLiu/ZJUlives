@@ -2,3 +2,38 @@
 data/
 build-temp/
 软件/
+
+# Local configuration and encrypted credentials
+.env.*
+!.env.example
+!.env.template
+*.dpapi
+
+# .NET generated build outputs (keep source packages for offline restore)
+**/bin/
+**/obj/
+/.vs/
+*.user
+*.suo
+
+# Keep app-v*/ and 拾课.exe tracked for ready-to-run downloads.
+# Local update snapshots and machine-specific shortcuts
+/update-backups/
+/*.lnk
+
+# Build outputs; retain fixtures, source assets and offline dependencies
+/build-library/*.dll
+/build-library/*.exe
+/build-library/*.pdb
+/build-library/*.deps.json
+/build-library/*.runtimeconfig.json
+/build-storage/*.dll
+/build-storage/*.exe
+/build-storage/*.pdb
+/build-storage/*.deps.json
+/build-storage/*.runtimeconfig.json
+
+# OS metadata
+Thumbs.db
+Desktop.ini
+.DS_Store
