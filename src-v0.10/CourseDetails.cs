@@ -22,6 +22,13 @@ public sealed partial class MainWindow
             Text("上课地点：" + (item.Location.Length > 0 ? item.Location : "待公布")), Space(8),
             Text("授课教师：" + (item.Teacher.Length > 0 ? item.Teacher : "未提供")), Space(8),
             Text(item.Cancelled ? "已从个人课表删除" : item.SchoolAdjustment.Length > 0 ? item.SchoolAdjustment : item.SourceKey != null ? "学校导入的课程" : "个人添加的课程", 12, Muted))));
+        var academic = new[]
+        {
+            string.IsNullOrWhiteSpace(item.Credit) ? "学分：未提供" : "学分：" + item.Credit,
+            string.IsNullOrWhiteSpace(item.Score) ? "成绩：未提供" : "成绩：" + item.Score,
+            string.IsNullOrWhiteSpace(item.GradePoint) ? "绩点：未提供" : "绩点：" + item.GradePoint
+        };
+        if (item.SourceKey != null) panel.Children.Add(Card(Stack(Text("成绩信息", 16, bold: true), Space(8), Text(string.Join("   ", academic), 13, Muted)), "#EDF2E9"));
         if (item.Repeat != "不重复") panel.Children.Add(Text($"{item.Repeat}重复 · 截止 {item.Until:yyyy-MM-dd} · 备注属于整个课程系列", 12, Muted));
         var note = new TextBox { Text = item.Note, AcceptsReturn = true, VerticalContentAlignment = VerticalAlignment.Top, TextWrapping = TextWrapping.Wrap, MinHeight = 210, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         panel.Children.Add(Card(Stack(Text("课程备注", 16, bold: true), Space(10), note)));

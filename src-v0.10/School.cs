@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -80,20 +81,42 @@ public sealed class ZjuUndergraduateProvider : ISchoolProvider
         using var req = new HttpRequestMessage(HttpMethod.Post, Jw + relative);
         req.Headers.Referrer = new Uri(Jw + "xtgl/index_initMenu.html");
         req.Headers.Add("X-Requested-With", "XMLHttpRequest");
+        req.Headers.Accept.ParseAdd("application/json, text/javascript, */*; q=0.01");
         req.Content = new FormUrlEncodedContent(form);
         using var res = await client.SendAsync(req);
         if ((int)res.StatusCode is >= 300 and < 400) throw new InvalidOperationException("学校会话已过期，请重新连接。");
         res.EnsureSuccessStatusCode();
         var text = await res.Content.ReadAsStringAsync();
         if (text.Contains("captcha_error")) throw new CaptchaRequiredException();
-        if (text.TrimStart().StartsWith('<')) throw new InvalidOperationException("学校返回了登录页或错误页，请重新连接。");
+                if (text.TrimStart().StartsWith('<'))
+        {
+            string stage = relative.StartsWith("kbcx/") ? "读取课表" : "读取考试";
+            string title = Regex.Replace(WebUtility.HtmlDecode(Regex.Match(text, @"<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline).Groups[1].Value), @"\s+", " ").Trim();
+            if (title.Length > 100) title = title[..100];
+            throw new InvalidOperationException(stage + "时学校返回网页" + (title.Length > 0 ? "（" + title + "）" : "") + "。请在账号与连接中重新登录；如要求验证码，请填写后读取。");
+        }
         return text;
     }
     public async Task<SchoolBatch> Fetch(Settings settings, string captcha)
     {
         var table = await Post("kbcx/xskbcx_cxXsKb.html", new() { ["xnm"] = settings.Year.ToString(), ["xqm"] = settings.Semester, ["captcha_value"] = captcha });
         var exams = await Post("xskscx/kscx_cxXsgrksIndex.html?doType=query&queryModel.showCount=5000", new() { ["xnm"] = settings.Year.ToString(), ["xqm"] = settings.Semester });
-        return SchoolParser.Parse(table, exams, settings);
+        string? grades = null; var gradeWarnings = new List<string>();
+        try
+        {
+            grades = await Post("cxdy/xscjcx_cxXscjIndex.html?doType=query&queryModel.showCount=5000", new()
+            {
+                ["xnm"] = settings.Year.ToString(), ["xqm"] = settings.Semester,
+                ["queryModel.showCount"] = "5000", ["queryModel.currentPage"] = "1"
+            });
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or InvalidDataException or TaskCanceledException)
+        {
+            // Grades may not be published yet, and some accounts cannot access this
+            // read-only endpoint. Keep the timetable usable and show a warning.
+            gradeWarnings.Add("本学期成绩接口暂不可用，已先导入课表；请稍后重新读取以补充学分和绩点。");
+        }
+        return SchoolParser.Parse(table, exams, settings, grades, gradeWarnings);
     }
     public async Task<byte[]> Captcha() => await client.GetByteArrayAsync(Jw + "kaptcha?time=" + DateTimeOffset.Now.ToUnixTimeMilliseconds());
     public void Dispose() => client.Dispose();
@@ -101,6 +124,7 @@ public sealed class ZjuUndergraduateProvider : ISchoolProvider
 
 public static class SchoolParser
 {
+    sealed record GradeInfo(string Code, string Name, string Credit, string Score, string GradePoint);
     static string Clean(string value) => Regex.Replace(WebUtility.HtmlDecode(Regex.Replace(WebUtility.HtmlDecode(value), "<[^>]*>", "")), @"[\t ]+", " ").Trim();
     public static string CourseLocation(JsonElement row, string[] lines)
     {
@@ -129,9 +153,45 @@ public static class SchoolParser
         if (result.Count == 0) throw new InvalidOperationException("请填写节次时间。");
         return result;
     }
-    public static SchoolBatch Parse(string timetable, string exams, Settings settings)
+    static List<GradeInfo> ParseGrades(string? json, List<string> warnings)
     {
-        var lessons = new List<SchoolRecord>(); var examList = new List<SchoolRecord>(); var warnings = new List<string>();
+        if (string.IsNullOrWhiteSpace(json)) return new();
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("items", out var rows) || rows.ValueKind != JsonValueKind.Array)
+            {
+                warnings.Add("成绩接口返回格式未识别，已保留课表；请在教务系统核对成绩。");
+                return new();
+            }
+            return rows.EnumerateArray().Select(row => new GradeInfo(
+                S(row, "xkkh", "kch_id", "kch", "kchbm"),
+                Clean(S(row, "kcmc", "kc_mc", "name")),
+                Clean(S(row, "xf", "credit")),
+                Clean(S(row, "cj", "score", "final_score")),
+                Clean(S(row, "jd", "grade_point", "gpa"))
+            )).Where(g => g.Code.Length > 0 || g.Name.Length > 0).ToList();
+        }
+        catch (JsonException)
+        {
+            warnings.Add("成绩接口返回内容无法识别，已保留课表；请在教务系统核对成绩。");
+            return new();
+        }
+    }
+    static GradeInfo? FindGrade(List<GradeInfo> grades, string code, string name)
+    {
+        if (code.Length > 0)
+        {
+            var exact = grades.FirstOrDefault(g => g.Code == code);
+            if (exact != null) return exact;
+        }
+        var byName = grades.Where(g => g.Name.Length > 0 && g.Name == name).ToList();
+        return byName.Count == 1 ? byName[0] : null;
+    }
+    public static SchoolBatch Parse(string timetable, string exams, Settings settings, string? gradesJson = null, IEnumerable<string>? extraWarnings = null)
+    {
+        var lessons = new List<SchoolRecord>(); var examList = new List<SchoolRecord>(); var warnings = extraWarnings?.ToList() ?? new();
+        var grades = ParseGrades(gradesJson, warnings);
         var periods = Periods(settings.Periods);
         using var coursesDoc = JsonDocument.Parse(timetable);
         if (!coursesDoc.RootElement.TryGetProperty("kbList", out var rows) || rows.ValueKind != JsonValueKind.Array) throw new InvalidOperationException("学校课表格式未识别，未更改本地数据。");
@@ -150,7 +210,9 @@ public static class SchoolParser
             var half = S(row, "xxq"); var dsz = S(row, "dsz"); var zcd = S(row, "zcd", "zcs");
             if (dsz != "" && dsz != "0" && dsz != "1" && dsz != "2") { warnings.Add($"{name}：单双周规则无法识别，未导入。"); continue; }
             if (zcd.Length > 0 && !Regex.IsMatch(zcd, @"^\d+(-\d+)?(,\d+(-\d+)?)*(周)?(\([单双]\))?$")) { warnings.Add($"{name}：周次范围无法识别，未导入。"); continue; }
+            var courseCode = S(row, "xkkh", "kch_id", "kch", "kchbm", "jxb_id");
             var schoolId = S(row, "jxb_id", "kch_id", "kch", "xkkh"); if (schoolId == "") schoolId = name;
+            var grade = FindGrade(grades, courseCode, name);
             for (int week = 1; week <= settings.Weeks; week++)
             {
                 bool firstHalf = half.Contains('秋') || half.Contains('春'), secondHalf = half.Contains('冬') || half.Contains('夏');
@@ -165,15 +227,20 @@ public static class SchoolParser
                     if (!included) continue;
                 }
                 var day = settings.TermMonday.Date.AddDays((week - 1) * 7 + weekday - 1);
-                lessons.Add(new() { Key = "course-" + Engine.Hash($"{schoolId}|{weekday}|{first}|{week}"), Kind = "课程", Title = name, Start = day + periods[first - 1].Start, End = day + periods[first + duration - 2].End, Location = location, Teacher = teacher });
+                lessons.Add(new() { Key = "course-" + Engine.Hash($"{schoolId}|{weekday}|{first}|{week}"), Kind = "课程", Title = name, Start = day + periods[first - 1].Start, End = day + periods[first + duration - 2].End, Location = location, Teacher = teacher, CourseCode = courseCode, Credit = grade?.Credit ?? "", Score = grade?.Score ?? "", GradePoint = grade?.GradePoint ?? "" });
             }
         }
         using var examsDoc = JsonDocument.Parse(exams);
         if (!examsDoc.RootElement.TryGetProperty("items", out var examRows) || examRows.ValueKind != JsonValueKind.Array) throw new InvalidOperationException("学校考试数据格式未识别，未更改本地数据。");
         foreach (var row in examRows.EnumerateArray())
         {
+            foreach (bool midterm in new[] { false, true })
+            {
             string name = S(row, "kcmc", "kc_mc", "name");
-            var time = S(row, "kssj", "kssjms", "ksrq");
+            var time = midterm ? S(row, "qzkssj") : S(row, "kssj", "kssjms", "ksrq");
+            if (midterm && string.IsNullOrWhiteSpace(time)) continue;            if (!Regex.IsMatch(time, @"20\d{2}[-/年]")) time = S(row, "ksrq", "ksrqstr", "ksrqStr") + " " + time;
+            if (Regex.Matches(time, @"(\d{1,2})[:：](\d{2})").Count < 2)
+                time += " " + S(row, "kssj_str", "kssjStr", "kskssj") + " " + S(row, "jssj", "ksjssj", "jssjStr");
             var dateMatch = Regex.Match(time, @"(20\d{2})[-/年](\d{1,2})[-/月](\d{1,2})");
             var hours = Regex.Matches(time, @"(\d{1,2})[:：](\d{2})");
             if (name == "" || !dateMatch.Success || hours.Count < 2) { warnings.Add($"考试「{(name == "" ? "未命名" : name)}」尚无可识别的完整时间，未导入。请在教务系统核对。"); continue; }
@@ -185,11 +252,12 @@ public static class SchoolParser
                 if (end <= start || end.Date != day || start.Date != day) throw new FormatException();
                 var id = S(row, "ksqz_id", "ks_id", "xkkh", "kch_id");
                 if (id == "") id = name;
-                var type = S(row, "kslxmc", "kslx", "ksxz");
-                examList.Add(new() { Key = "exam-" + Engine.Hash(id + "|" + type), Title = name, Kind = "考试", Start = start, End = end, Location = S(row, "cdmc", "jsmc", "ksdd", "jasmc") + (S(row, "zwxh") == "" ? "" : " · 座位 " + S(row, "zwxh")) });
+                var type = midterm ? "midterm" : S(row, "kslxmc", "kslx", "ksxz");
+                examList.Add(new() { Key = "exam-" + Engine.Hash(id + "|" + type), Title = name + (midterm ? " · 期中考试" : ""), Kind = "考试", Start = start, End = end, Location = (midterm ? S(row, "qzjsmc") : S(row, "cdmc", "jsmc", "ksdd", "jasmc")) + (S(row, midterm ? "qzzwxh" : "zwxh") == "" ? "" : " · 座位 " + S(row, midterm ? "qzzwxh" : "zwxh")) });
             }
             catch (Exception ex) when (ex is FormatException or ArgumentOutOfRangeException) { warnings.Add($"考试「{name}」时间不合法，未导入。"); }
         }
+            }
         var duplicates = lessons.GroupBy(l => l.Key).Where(g => g.Count() > 1).ToList();
         foreach (var g in duplicates) if (g.Skip(1).Any(x => !x.Same(g.First()))) throw new InvalidOperationException("课表存在无法区分的重复课程，请先使用手动记录。");
         if (examList.GroupBy(e => e.Key).Any(g => g.Count() > 1)) throw new InvalidOperationException("考试数据存在无法区分的重复记录，未导入，请在学校系统核对。");

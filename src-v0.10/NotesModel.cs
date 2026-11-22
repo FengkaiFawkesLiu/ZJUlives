@@ -52,6 +52,13 @@ public static class NotesModel
         if (added) { note.NoteLinks.Add(new() { Key = target.Key, Kind = target.Kind, Label = target.Label }); note.Modified = DateTime.Now; }
         SyncReciprocal(data, note); return added;
     }
+    public static bool IsTopParent(AppData data, string key)
+    {
+        var note = data.Items.FirstOrDefault(n => n.Kind == "笔记" && !n.Cancelled && Key(n) == key);
+        if (note == null) return false;
+        bool hasParent = data.Items.Any(n => n.Kind == "笔记" && !n.Cancelled && n.LibraryId == note.LibraryId && n.Id == note.ParentId);
+        return !hasParent && data.Items.Any(n => n.Kind == "笔记" && !n.Cancelled && n.LibraryId == note.LibraryId && n.ParentId == note.Id);
+    }
     public static string CourseKey(Item i) => "course:" + Engine.Hash((i.Scope ?? "个人课程") + "|" + i.Title.Trim() + "|" + i.Teacher.Trim());
     public static string Key(Item i) => i.Kind == "课程" ? CourseKey(i) : (i.Kind == "笔记" ? "note:" : "item:") + i.Id;
     public static List<NoteNode> Targets(AppData data, NoteLibrary library, string? exclude = null)
@@ -83,6 +90,11 @@ public static class NotesModel
                 var edgeKey = string.CompareOrdinal(Key(note), link.Key) < 0 ? Key(note) + "|" + link.Key : link.Key + "|" + Key(note);
                 if (seen.Add(edgeKey)) edges.Add(new(Key(note), link.Key));
             }
+        foreach (var note in notes) if (note.ParentId != null && nodes.ContainsKey("note:" + note.ParentId))
+        {
+            var parentKey = "note:" + note.ParentId;
+            if (!edges.Any(e => e.From == parentKey && e.To == Key(note) || e.To == parentKey && e.From == Key(note))) edges.Add(new(parentKey, Key(note)));
+        }
         return new(nodes.Values.ToList(), edges);
     }
     public static void Validate(AppData data)

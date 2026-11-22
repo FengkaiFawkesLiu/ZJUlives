@@ -18,6 +18,7 @@ public sealed class Attachment
 
 public sealed class Item
 {
+    public CloudNoteSource? ClassroomSource { get; set; }
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Kind { get; set; } = "活动";
     public string Title { get; set; } = "";
@@ -53,6 +54,12 @@ public sealed class Item
     public bool SchoolSuspended { get; set; }
     public string SchoolAdjustment { get; set; } = "";
     public string Teacher { get; set; } = "";
+    // Academic metadata imported from the undergraduate education system.
+    // Strings preserve values such as “合格” and “不计”，which are not numeric grades.
+    public string CourseCode { get; set; } = "";
+    public string Credit { get; set; } = "";
+    public string Score { get; set; } = "";
+    public string GradePoint { get; set; } = "";
     public DateTime Modified { get; set; } = DateTime.Now;
     public bool HasConflict => Pending != null || PendingRemoval;
     public Item Copy() => JsonSerializer.Deserialize<Item>(JsonSerializer.Serialize(this))!;
@@ -67,12 +74,17 @@ public sealed class SchoolRecord
     public DateTime End { get; set; }
     public string Location { get; set; } = "";
     public string Teacher { get; set; } = "";
+    public string CourseCode { get; set; } = "";
+    public string Credit { get; set; } = "";
+    public string Score { get; set; } = "";
+    public string GradePoint { get; set; } = "";
     public DateTime? BaseStart { get; set; }
     public DateTime? BaseEnd { get; set; }
     public bool Suspended { get; set; }
     public string Adjustment { get; set; } = "";
-    public bool Same(SchoolRecord? other) => other != null && Title == other.Title && Kind == other.Kind && Start == other.Start && End == other.End && Location == other.Location && Teacher == other.Teacher && Suspended == other.Suspended && Adjustment == other.Adjustment;
-    public static SchoolRecord From(Item item) => new() { Key = item.SourceKey ?? item.Id, Kind = item.Kind, Title = item.Title, Start = item.Start, End = item.End, Location = item.Location, Teacher = item.Teacher, Suspended = item.SchoolSuspended, Adjustment = item.SchoolAdjustment };
+    bool AcademicPresent => CourseCode.Length > 0 || Credit.Length > 0 || Score.Length > 0 || GradePoint.Length > 0;
+    public bool Same(SchoolRecord? other) => other != null && Title == other.Title && Kind == other.Kind && Start == other.Start && End == other.End && Location == other.Location && Teacher == other.Teacher && (!AcademicPresent || (CourseCode == other.CourseCode && Credit == other.Credit && Score == other.Score && GradePoint == other.GradePoint)) && Suspended == other.Suspended && Adjustment == other.Adjustment;
+    public static SchoolRecord From(Item item) => new() { Key = item.SourceKey ?? item.Id, Kind = item.Kind, Title = item.Title, Start = item.Start, End = item.End, Location = item.Location, Teacher = item.Teacher, CourseCode = item.CourseCode, Credit = item.Credit, Score = item.Score, GradePoint = item.GradePoint, Suspended = item.SchoolSuspended, Adjustment = item.SchoolAdjustment };
 }
 
 public sealed class Settings
@@ -100,6 +112,7 @@ public sealed class Settings
 
 public sealed class AppData
 {
+    public CloudState Classroom { get; set; } = new();
     public CampusAssistantState Assistant { get; set; } = new();
     public int Version { get; set; } = 1;
     public int NoteSchemaVersion { get; set; }
@@ -310,7 +323,8 @@ public static class SchoolMerge
     public static void Set(Item item, SchoolRecord source)
     {
         item.Title = source.Title; item.Kind = source.Kind; item.Start = source.Start; item.End = source.End; item.Location = source.Location;
-        item.Teacher = source.Teacher; item.SchoolSuspended = source.Suspended; item.SchoolAdjustment = source.Adjustment;
+        item.Teacher = source.Teacher; item.CourseCode = source.CourseCode; item.Credit = source.Credit; item.Score = source.Score; item.GradePoint = source.GradePoint;
+        item.SchoolSuspended = source.Suspended; item.SchoolAdjustment = source.Adjustment;
         if (item.SchoolRemoved) item.Cancelled = false;
         item.SchoolRemoved = false;
     }

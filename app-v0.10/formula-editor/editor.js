@@ -1,4 +1,4 @@
-"use strict";
+﻿"use strict";
 const $=id=>document.getElementById(id), mf=$('mf');
 MathfieldElement.fontsDirectory='./vendor/fonts'; MathfieldElement.soundsDirectory=null; MathfieldElement.speechEngine='local';
 mf.mathVirtualKeyboardPolicy='manual'; mf.smartFence=true; mf.inlineShortcuts={...mf.inlineShortcuts, 'sqrt':'\\sqrt{#?}', 'frac':'\\frac{#?}{#?}'};

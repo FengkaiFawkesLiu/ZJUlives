@@ -34,7 +34,7 @@ public sealed partial class MainWindow
         dialog.MinimumContentWidth = 540;
         var dock = new DockPanel { Margin = new Thickness(25), Background = System.Windows.Media.Brushes.Transparent }; dialog.Content = dock;
         var actions = new DockPanel { Margin = new Thickness(0, 15, 0, 0) }; DockPanel.SetDock(actions, Dock.Bottom); dock.Children.Add(actions);
-        var header = Stack(Text(original == null ? (kind == "笔记" ? "留下一点想法" : "为新的安排留好位置") : "安排与记录", 25, bold: true), Space(6), Text("日程、笔记与附件，保存在这台电脑。", 12, Muted), Space(18));
+        var header = Stack(Text(original == null ? (kind == "笔记" ? "留下一点想法" : "为新的安排留好位置") : "安排与记录", 25, bold: true), Space(18));
         DockPanel.SetDock(header, Dock.Top); dock.Children.Add(header);
         var panel = new StackPanel(); dock.Children.Add(new ScrollViewer { Content = panel, Padding = new Thickness(0, 0, 10, 0) });
         var title = new TextBox { Text = draft.Title, FontSize = 20, MaxLength = 300 };
@@ -46,7 +46,8 @@ public sealed partial class MainWindow
         var timeStart = new TimeWheel(draft.Start); var timeEnd = new TimeWheel(draft.End);
         var startField = Field("开始时间 / 待办截止时间", Row(dateStart, timeStart)); var endField = Field("结束时间", Row(dateEnd, timeEnd));
         var timeHint = Text(campus == null ? "上下滚动或拖动数字选择时间 · 24 小时制" : campus.Start == null ? "官网未提供活动时间，请选择实际日期和起止时间。" : "官网未提供结束时间，当前预填 1 小时，请确认。", 11, Muted);
-        var timeCard = Card(Stack(startField, endField, timeHint), padding: 18); panel.Children.Add(timeCard);
+
+        var timeCard = Card(Stack(startField, endField, timeHint), padding: 18); HoverHint(timeCard, timeHint, () => campus != null || draft.AssistantKey != null); panel.Children.Add(timeCard);
         if (draft.AssistantKey != null) { title.IsReadOnly = true; dateStart.IsEnabled = dateEnd.IsEnabled = timeStart.IsEnabled = timeEnd.IsEnabled = false; timeHint.Text = "标题和截止时间跟随学校更新；个人备注、附件和提醒可自由设置。"; }
         var location = new TextBox { Text = draft.Location }; var locationField = Field("地点", location); panel.Children.Add(locationField);
         if (draft.Teacher.Length > 0) { panel.Children.Add(Text("授课教师：" + draft.Teacher, 12, Muted)); panel.Children.Add(Space(10)); }
@@ -64,7 +65,7 @@ public sealed partial class MainWindow
         bool relatedChanged = false; related.SelectionChanged += (_, _) => relatedChanged = true;
         panel.Children.Add(Field("关联事项", related));
         var note = new TextBox { Text = draft.Note, AcceptsReturn = true, VerticalContentAlignment = VerticalAlignment.Top, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MinHeight = 170, MaxHeight = 350 };
-        panel.Children.Add(Card(Stack(Text("笔记与准备", 16, bold: true), Space(7), Text("随手记录想法，也可以整理要带的材料。", 11, Muted), Space(12), note)));
+        panel.Children.Add(Card(Stack(Text("笔记与准备", 16, bold: true), Space(12), note)));
         var noteStatus = Text(original == null || single ? "新建记录的备注随安排一起保存" : "",12,Muted);
         panel.Children.Add(noteStatus);
         using var autosave = original != null && !single ? new RemarkAutosave(store, original.Id, note, noteStatus, dialog) : null;

@@ -98,6 +98,7 @@ public sealed partial class MainWindow
                     {
                         await provider.Login(account, secret); if (closed) return;
                         if (remember.IsChecked == true) Vault.Save(new(account, secret)); else Vault.Forget();
+                        StopClassroom(); sharedSchoolSession = new(account, secret);
                         DisconnectAssistant();
                         logged = true; username.IsEnabled = false; password.IsEnabled = false; remember.IsEnabled = false;
                     }

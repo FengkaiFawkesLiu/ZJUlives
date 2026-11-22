@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="gb2312" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>体育竞赛</title>
+    <link rel="stylesheet" href="template/css/reset.css" />
+    <link rel="stylesheet" href="template/css/animate.css" />
+    <link rel="stylesheet" href="template/css/swiper-3.4.2.min.css" />
+    <link rel="stylesheet" href="template/css/common.css" />
+    <link rel="stylesheet" href="template/css/list.css" />
+    <link rel="stylesheet" href="template/css/left.css" />
+
+    <script src="template/js/jquery.min.js"></script>
+    <script src="template/js/set.js"></script>
+    <script src="template/js/swiper-3.4.2.min.js"></script>
+    <script src="template/js/main.js"></script>
+<base target="_blank">
+  </head>
+  <body>
+    <!-- 头部 -->
+    
+<div class="search_box">
+	<div class="search_black"></div>
+  <form id="form1" name="form1" action="search.php" method="get">
+      <input type="hidden" name="postflag" id="postflag" value="1" />
+      <input type="hidden" name="area" id="area" value="172433" />
+      <input type="text" name="kw_qbzc" id="kw_qbzc" class="searchInput" value="" placeholder="请输入关键词" />
+      <button style="display:inline-block;background-image: url(template/images/search.png) ;  background-size: 19px;"></button>
+  </form>
+
+</div>
+<div class="header">
+    <div class="layout clearfix" style="position:relative ;">
+     <div class="logo">
+       <img src="template/images/logo.png" alt="" />
+     </div>
+    <div class="search" style="">
+        <span ></span>
+    </div>
+     <ul class="nav">
+       <li><a href="index.php"  target="_blank">首页</a></li>
+                               
+            
+                        
+                               <li><a href="redir.php?catalog_id=172435"  target="_blank">部门概况</a>
+        
+                 <div class="dropdown">
+                    <a href="redir.php?catalog_id=172606"  target="_blank">部门简介</a>
+                    <a href="redir.php?catalog_id=172607"  target="_blank">部门领导</a>
+                    <a href="redir.php?catalog_id=172608"  target="_blank">机构设置</a>
+                    <a href="redir.php?catalog_id=172609"  target="_blank">部门黄页</a>
+                   </div>
+                </li>
+              <li><a href="redir.php?catalog_id=172436"  target="_blank">党政管理</a>
+        
+                 <div class="dropdown">
+                    <a href="redir.php?catalog_id=172610"  target="_blank">信息公开</a>
+                    <a href="redir.php?catalog_id=172611"  target="_blank">制度文件</a>
+                    <a href="redir.php?catalog_id=172612"  target="_blank">体艺之家</a>
+                    <a href="redir.php?catalog_id=190545"  target="_blank">公示公告</a>
+                   </div>
+                </li>
+              <li><a href="redir.php?catalog_id=172437"  target="_blank">组织人事</a>
+        
+                 <div class="dropdown">
+                    <a href="redir.php?catalog_id=172613"  target="_blank">组织工作</a>
+                    <a href="redir.php?catalog_id=172614"  target="_blank">人事管理</a>
+                    <a href="redir.php?catalog_id=191727"  target="_blank">人才引进</a>
+                    <a href="redir.php?catalog_id=191875"  target="_blank">师资队伍</a>
+                    <a href="redir.php?catalog_id=215796"  target="_blank">师德建设</a>
+                   </div>
+                </li>
+              <li><a href="redir.php?catalog_id=172438"  target="_blank">教育教学</a>
+        
+                 <div class="dropdown">
+                    <a href="redir.php?catalog_id=172628"  target="_blank">公共体育教育</a>
+                    <a href="redir.php?catalog_id=172629"  target="_blank">公共艺术教育</a>
+                    <a href="redir.php?catalog_id=172630"  target="_blank">体质健康测试</a>
+                    <a href="redir.php?catalog_id=172615"  target="_blank">教研科研</a>
+                    <a href="redir.php?catalog_id=172631"  target="_blank">教师发展</a>
+                    <a href="redir.php?catalog_id=194111"  target="_blank">教学文件</a>
+                    <a href="redir.php?catalog_id=206311"  target="_blank">教学公告</a>
+                   </div>
+                </li>
+              <li><a href="redir.php?catalog_id=172439"  target="_blank">学生工作</a>
+        
+                 <div class="dropdown">
+                    <a href="redir.php?catalog_id=213873"  target="_blank">思政工作</a>
+                    <a href="redir.php?catalog_id=172632"  target="_blank">运动队</a>
+                    <a href="redir.php?catalog_id=172633"  target="_blank">艺术团</a>
+                   </div>
+                </li>
+              <li><a href="redir.php?catalog_id=172441"  target="_blank">智慧场馆</a>
+        
+                 <div class="dropdown">
+                    <a href="redir.php?catalog_id=172636"  target="_blank">场馆介绍</a>
+                    <a href="redir.php?catalog_id=172637"  target="_blank">场馆租借</a>
+                    <a href="redir.php?catalog_id=172638"  target="_blank">APP预约</a>
+                   </div>
+                </li>
+              <li><a href="redir.php?catalog_id=172442"  target="_blank">下载专区</a>
+        
+               </li>
+                        </ul>
+
+	
+	
+     <div class="menu-icon">
+       <img src="template/images/menu.png" alt="" />
+     </div>
+    </div>
+</div>
+<div class="mnav">
+  <div class="contentct">
+    <div class="nav-item">
+      <a href="index.php"  target="_blank">首页</a>
+    </div>
+                    
+        
+                
+                    <div class="nav-item"><a href="redir.php?catalog_id=172435"  target="_blank">部门概况</a></div>
+        <div class="nav-item"><a href="redir.php?catalog_id=172436"  target="_blank">党政管理</a></div>
+        <div class="nav-item"><a href="redir.php?catalog_id=172437"  target="_blank">组织人事</a></div>
+        <div class="nav-item"><a href="redir.php?catalog_id=172438"  target="_blank">教育教学</a></div>
+        <div class="nav-item"><a href="redir.php?catalog_id=172439"  target="_blank">学生工作</a></div>
+        <div class="nav-item"><a href="redir.php?catalog_id=172441"  target="_blank">智慧场馆</a></div>
+        <div class="nav-item"><a href="redir.php?catalog_id=172442"  target="_blank">下载专区</a></div>
+          </div>
+  <div class="contentbl"></div>
+</div>
+    <!-- banner图 -->
+    <div class="banner"></div>
+    <div class="list-container">
+      <div class="layout clearfix">
+        <div class="left fl">
+    
+        <div class="menu-header">
+      <div class="content">
+        <h3>校园体艺活动</h3>
+      </div>
+    </div>
+    
+
+
+
+    <ul class="menu1">
+              <li class="menu-item  selected ">
+        <a href="redir.php?catalog_id=172451"  target="_blank">体育竞赛</a>
+        
+              </li>
+            <li class="menu-item ">
+        <a href="redir.php?catalog_id=172452"  target="_blank">社团风采</a>
+        
+              </li>
+            <li class="menu-item ">
+        <a href="redir.php?catalog_id=185490"  target="_blank">课外辅导</a>
+        
+              </li>
+            <li class="menu-item ">
+        <a href="redir.php?catalog_id=185491"  target="_blank">艺术季</a>
+        
+                <ul class="menu-down">
+                      <li class="down-item ">
+            <a href="redir.php?catalog_id=185494"  target="_blank">演出、讲座</a>
+          </li>
+                    <li class="down-item ">
+            <a href="redir.php?catalog_id=185495"  target="_blank">工作坊、艺术小旅行、展览</a>
+          </li>
+                    <li class="down-item ">
+            <a href="redir.php?catalog_id=185496"  target="_blank">竞赛、学长带你玩艺术</a>
+          </li>
+                  </ul>
+              </li>
+            <li class="menu-item ">
+        <a href="redir.php?catalog_id=185492"  target="_blank">音乐会客厅</a>
+        
+              </li>
+            <li class="menu-item ">
+        <a href="redir.php?catalog_id=185493"  target="_blank">高水平艺术展演</a>
+        
+              </li>
+            <li class="menu-item ">
+        <a href="redir.php?catalog_id=189803"  target="_blank">积分榜</a>
+        
+              </li>
+          </ul>
+          </div>        <div class="right">
+            <div class="top">
+    <h3>体育竞赛</h3>
+    <div class="position">
+      <span class="weizhi"><a href="index.php"  target="_blank">首页</a> &gt; <a href=""  target="_blank">体育竞赛</a></span>
+    </div>
+  </div>          <div class="list">
+                         
+            
+<ul>
+
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=220556">
+        <div class="content ">
+          <div class="date">
+            <p class="d">25</p>
+            <p class="y">2026-05</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            赓续求是文脉，传承西迁精神 | 重跑“西迁路”主题活动圆满举办
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=220393">
+        <div class="content ">
+          <div class="date">
+            <p class="d">15</p>
+            <p class="y">2026-05</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            二轮抢票&定妆照发布｜“大学之声”高水平艺术展演——文琴舞蹈团“大地群响”专场演出
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=220390">
+        <div class="content ">
+          <div class="date">
+            <p class="d">14</p>
+            <p class="y">2026-05</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            “足”以为傲！浙大首届“校超”迎来终极对决，总决赛邀请函请查收~
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=220330">
+        <div class="content ">
+          <div class="date">
+            <p class="d">03</p>
+            <p class="y">2026-05</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            精彩回顾｜2026浙BA超冠赛圆满收官，浙大健儿摘得卓越奖
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=220208">
+        <div class="content ">
+          <div class="date">
+            <p class="d">29</p>
+            <p class="y">2026-04</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            浙江大学2026年春季运动会顺利举行
+            </p>
+            
+            <p class="dec">
+                4月18日，春光明媚，活力绽放。浙江大学2026年春季运动会在紫金港校区与玉泉校区同时拉开帷幕，趣味活动精彩纷呈，现场充满欢声笑语。春季运动会不仅是一场校园体育文化盛会，更承载着深厚的文化底蕴。活动传承自1934年首届浙江大学运动会以来的传统体育项目，旨在鼓励同学们在运动中培养竞争意识、合作意识和拼搏精神。赛场上，27个精心设置的比赛项目吸引了众多师生参与，包括：滚铁环、踩石过河、螃蟹背西瓜、自行...
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=220090">
+        <div class="content ">
+          <div class="date">
+            <p class="d">25</p>
+            <p class="y">2026-04</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            全力以赴！2026年省高校学生体质健康状况抽测现场精彩大放送~
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=220082">
+        <div class="content ">
+          <div class="date">
+            <p class="d">24</p>
+            <p class="y">2026-04</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            浙BA超冠赛今日开赛！走进浙大男篮背后故事，一起为紫金战魂打Call
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=220035">
+        <div class="content ">
+          <div class="date">
+            <p class="d">23</p>
+            <p class="y">2026-04</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            抢票中｜2026年浙江省篮球冠军超级挑战赛即将启幕，一起为浙大呐喊加油！
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=219770">
+        <div class="content ">
+          <div class="date">
+            <p class="d">02</p>
+            <p class="y">2026-04</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            2025年度回顾 | 翻开这本体育手账，收藏每一场奔赴
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+        <li class="list-item wow fadeInUp">
+      <a href="redir.php?catalog_id=172451&object_id=219840">
+        <div class="content ">
+          <div class="date">
+            <p class="d">01</p>
+            <p class="y">2026-04</p>
+          </div>
+          <div class="info">
+            <p class="title">
+            三好杯 | 谁“羽”争锋！点击查收2026羽毛球比赛竞赛规程
+            </p>
+            
+            <p class="dec">
+                
+            </p>
+          </div>
+        </div>
+      </a>
+    </li>
+      </ul>            <div class="pagination">
+
+        <form action="" method="get" id="test_form"  onkeydown="if(event.keyCode==13)return false;">
+            <span><a href="redir.php?catalog_id=172451" class="other 0">首页</a></span>
+    <span><a href="redir.php?catalog_id=172451" class="other 0">上一页</a></span>
+    
+            <a href="redir.php?catalog_id=172451" class="num 1">1</a>
+        <a href="" class="num active">2</a>
+        
+            <a href="redir.php?catalog_id=172451&page=2" class="num 0">3</a>
+            <span>...</span>
+        
+
+        <a href="redir.php?catalog_id=172451&page=34" class="num">35</a>
+        <span><a href="redir.php?catalog_id=172451&page=2" class="other">下一页</a></span>
+    <span><a href="redir.php?catalog_id=172451&page=34" class="other">尾页</a></span>
+    
+    <input type="hidden" name="catalog_id" value="172451"/>
+    <input type="text" name="page" id="test_page" style="    width: 50px;
+    height: 25px;"/>
+    <a onclick="submits()" class="num">跳转</a>
+</form>
+
+<script>
+
+    function submits(){
+        var form = document.getElementById('test_form');
+        var page = document.getElementById('test_page');
+        page.value--;
+
+        document.getElementById('test_form').submit();
+    }
+</script>
+
+
+</div>                       </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+    <div class="layout clearfix">
+      <ul class="footer-nav clearfix">
+                                
+            
+                        
+                                <span></span>
+        <li>
+            <a href="redir.php?catalog_id=172435"  target="_blank">部门概况</a>
+            
+                      <div class="dropdown">
+                      <a href="redir.php?catalog_id=172606"  target="_blank">部门简介</a>
+                    <a href="redir.php?catalog_id=172607"  target="_blank">部门领导</a>
+                    <a href="redir.php?catalog_id=172608"  target="_blank">机构设置</a>
+                    <a href="redir.php?catalog_id=172609"  target="_blank">部门黄页</a>
+                    </div>
+                  </li>
+                <span></span>
+        <li>
+            <a href="redir.php?catalog_id=172436"  target="_blank">党政管理</a>
+            
+                      <div class="dropdown">
+                      <a href="redir.php?catalog_id=172610"  target="_blank">信息公开</a>
+                    <a href="redir.php?catalog_id=172611"  target="_blank">制度文件</a>
+                    <a href="redir.php?catalog_id=172612"  target="_blank">体艺之家</a>
+                    <a href="redir.php?catalog_id=190545"  target="_blank">公示公告</a>
+                    </div>
+                  </li>
+                <span></span>
+        <li>
+            <a href="redir.php?catalog_id=172437"  target="_blank">组织人事</a>
+            
+                      <div class="dropdown">
+                      <a href="redir.php?catalog_id=172613"  target="_blank">组织工作</a>
+                    <a href="redir.php?catalog_id=172614"  target="_blank">人事管理</a>
+                    <a href="redir.php?catalog_id=191727"  target="_blank">人才引进</a>
+                    <a href="redir.php?catalog_id=191875"  target="_blank">师资队伍</a>
+                    <a href="redir.php?catalog_id=215796"  target="_blank">师德建设</a>
+                    </div>
+                  </li>
+                <span></span>
+        <li>
+            <a href="redir.php?catalog_id=172438"  target="_blank">教育教学</a>
+            
+                      <div class="dropdown">
+                      <a href="redir.php?catalog_id=172628"  target="_blank">公共体育教育</a>
+                    <a href="redir.php?catalog_id=172629"  target="_blank">公共艺术教育</a>
+                    <a href="redir.php?catalog_id=172630"  target="_blank">体质健康测试</a>
+                    <a href="redir.php?catalog_id=172615"  target="_blank">教研科研</a>
+                    <a href="redir.php?catalog_id=172631"  target="_blank">教师发展</a>
+                    <a href="redir.php?catalog_id=194111"  target="_blank">教学文件</a>
+                    <a href="redir.php?catalog_id=206311"  target="_blank">教学公告</a>
+                    </div>
+                  </li>
+                <span></span>
+        <li>
+            <a href="redir.php?catalog_id=172439"  target="_blank">学生工作</a>
+            
+                      <div class="dropdown">
+                      <a href="redir.php?catalog_id=213873"  target="_blank">思政工作</a>
+                    <a href="redir.php?catalog_id=172632"  target="_blank">运动队</a>
+                    <a href="redir.php?catalog_id=172633"  target="_blank">艺术团</a>
+                    </div>
+                  </li>
+                <span></span>
+        <li>
+            <a href="redir.php?catalog_id=172441"  target="_blank">智慧场馆</a>
+            
+                      <div class="dropdown">
+                      <a href="redir.php?catalog_id=172636"  target="_blank">场馆介绍</a>
+                    <a href="redir.php?catalog_id=172637"  target="_blank">场馆租借</a>
+                    <a href="redir.php?catalog_id=172638"  target="_blank">APP预约</a>
+                    </div>
+                  </li>
+                <span></span>
+        <li>
+            <a href="redir.php?catalog_id=172442"  target="_blank">下载专区</a>
+            
+                    </li>
+                      </ul>
+      <div class="contect-box">
+        <div class="logo">
+          <img src="template/images/logo.png" alt="" />
+        </div>
+        <div class="contect">
+           
+                                 <div><span>联系电话：</span><span>0571-88981308</span></div>
+                    <div><span>传真：</span><span>0571-88208813</span></div>
+                    <div><span>体质测试咨询电话：</span><span>0571-88208813</span></div>
+                  </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bot">
+    <div class="layout">
+      <p>Copyright @ 2024 浙江大学公共体育与艺术部 技术支持：<a href="https://www.hzccx.com/" target="_blank">寸草心科技</a></p>
+    </div>
+  </div>    <script src="template/js/wow.js"></script>
+    <script>
+      new WOW().init();
+    </script>
+  </body>
+</html>

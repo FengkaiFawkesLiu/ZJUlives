@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -35,7 +35,7 @@ public sealed partial class MainWindow
         else p = Page();
         var tabs = new[] { "课程待办", "图书借阅", "课堂签到", "连接与设置" };
         var tabRow = new WrapPanel { Margin = new Thickness(0, 0, 0, 18) };
-        for (int n = 0; n < tabs.Length; n++) { int target = n; tabRow.Children.Add(Button(tabs[n], () => { assistantTab = target; assistantPage = 0; Render(); }, assistantTab == n)); }
+        for (int n = 0; n < tabs.Length; n++) { int target = n; var tab = TabButton(tabs[n], () => { assistantTab = target; assistantPage = 0; Render(); }, assistantTab == n); GlassHover.SetIsExcluded(tab,false); GlassHover.SetIsSubtle(tab,false); tabRow.Children.Add(tab); }
         p.Children.Insert(0, tabRow);
         if (assistantTab == 3)
         {
@@ -53,7 +53,7 @@ public sealed partial class MainWindow
             if (assistantTab == 1) { RenderLibraryLists(p, source); return; }
             if (assistantTab == 0)
             {
-                p.Children.Add(Row(Button("学在浙大", () => { showPintia = false; assistantPage = 0; Render(); }, !showPintia), Button("Pintia · 可选", () => { showPintia = true; assistantPage = 0; Render(); }, showPintia)));
+                p.Children.Add(Row(TabButton("学在浙大", () => { showPintia = false; assistantPage = 0; Render(); }, !showPintia), TabButton("Pintia · 可选", () => { showPintia = true; assistantPage = 0; Render(); }, showPintia)));
                 if (showPintia) p.Children.Add(Card(Stack(Text("Pintia 截止事项", 18, bold: true), Space(8), Text("同步近 90 天以来截止的题目集；提交状态无法核实，请在待办中自行标记完成。Cookie 只用于连接 Pintia。", 12, Muted), Space(10), Row(Button("设置 Pintia", PintiaDialog), Button("断开并删除 Pintia 凭据", () => { try { PintiaVault.Forget(); pintiaSession = null; Commit(() => store.Data.Assistant.PintiaEnabled = false); } catch { UiMessage.Show(this, "本机凭据文件删除失败，请检查文件权限。"); } })))));
             }
             var entries = source.Entries.OrderBy(e => e.Complete).ThenBy(e => e.Due ?? DateTime.MaxValue).ToList();
@@ -133,6 +133,7 @@ public sealed partial class MainWindow
                 var credential = new SchoolCredential(user.Text.Trim(), pass.Password);
                 await client.Login(credential, cancel.Token); cancel.Token.ThrowIfCancellationRequested();
                 if (remember.IsChecked == true) Vault.Save(credential); else Vault.Forget();
+                StopClassroom(); sharedSchoolSession = credential;
                 DisconnectAssistant(); assistantClient = client; client = null; logged = true; dialog.Close();
             }
             catch (Exception ex) { if (!closed) { status.Text = AssistantError(ex); connect.IsEnabled = true; } }

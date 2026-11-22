@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,8 +19,12 @@ public static class SchoolSync
     public static async Task<SchoolBatch> Fetch(SchoolCredential credential, Settings settings, Func<ISchoolProvider>? factory = null)
     {
         using var provider = factory?.Invoke() ?? new ZjuUndergraduateProvider();
-        await provider.Login(credential.Username, credential.Password);
-        return await provider.Fetch(settings, "");
+        try { await provider.Login(credential.Username, credential.Password); }
+        catch (TaskCanceledException) { throw new InvalidOperationException("学校登录超时，请确认校园网络或 VPN 后重新连接。"); }
+        catch (HttpRequestException ex) { throw new InvalidOperationException("学校登录连接失败：" + ex.Message); }
+        try { return await provider.Fetch(settings, ""); }
+        catch (TaskCanceledException) { throw new InvalidOperationException("读取课程或考试超时，请稍后重试；本地数据未改动。"); }
+        catch (HttpRequestException ex) { throw new InvalidOperationException("读取课程或考试连接失败：" + ex.Message); }
     }
     public static SyncSummary Apply(AppData data, SchoolBatch batch, string account, Settings term, DateTime now, bool allowRemoval)
     {
@@ -98,7 +102,7 @@ public sealed partial class MainWindow
         }
         catch (CaptchaRequiredException) { syncStatus = "学校要求验证码，自动更新暂停。请点击“账号与连接”填写验证码；当前显示上次成功更新的数据。"; }
         catch (CryptographicException) { syncStatus = "无法解密本地账号，可能更换了 Windows 用户。请删除已保存账号并重新连接。"; }
-        catch (Exception ex) { syncStatus = ex is TaskCanceledException or HttpRequestException ? "连接学校失败或超时，保留本地数据；可稍后重新连接。" : "更新未完成：" + ex.Message; }
+        catch (Exception ex) { syncStatus = ex is TaskCanceledException or HttpRequestException ? "连接学校失败：" + ex.Message + "；保留本地数据，请重新连接。" : "更新未完成：" + ex.Message; }
         finally { syncBusy = false; if (!exiting) { Render(); UpdateFreshness(); } }
     }
     async Task CheckHolidayNotice()
@@ -112,6 +116,7 @@ public sealed partial class MainWindow
     }
     void ForgetCredentials()
     {
+        StopClassroom();
         DisconnectAssistant(); syncGeneration++;
         var failures = new List<string>();
         try { Vault.Forget(); } catch { failures.Add("账号密码文件未能删除，下次启动仍可能自动登录"); }

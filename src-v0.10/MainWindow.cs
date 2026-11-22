@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -23,7 +23,7 @@ public sealed partial class MainWindow : Window
     readonly ContentControl body = new();
     public ColumnWorkspace Workspace { get; private set; } = null!;
     readonly StackPanel navigation = new();
-    readonly TextBlock heading = Text("", 27, bold: true), subtitle = Text("", 12, Muted);
+    readonly TextBlock heading = Text("", 27, bold: true);
     readonly TextBlock footer = Text("", 11, Muted);
     readonly TextBox search = new() { Width = 220, ToolTip = "搜索标题、地点与笔记；输入后跨日期查找", VerticalAlignment = VerticalAlignment.Center };
     readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(15) };
@@ -32,7 +32,7 @@ public sealed partial class MainWindow : Window
     DateTime date = DateTime.Today;
     string view;
     bool exiting;
-    readonly string[] views = { "今日概览", "周课表", "作业", "考试", "其他", "笔记与附件", "校园活动", "冲突与提醒", "校园助手", "设置与备份" };
+    readonly string[] views = { "今日概览", "周课表", "作业", "考试", "其他", "笔记与附件", "校园活动", "冲突与提醒", "校园助手", "智云课堂", "设置与备份" };
     readonly string[] symbols = { "◈", "▦", "☑", "▤", "◇", "❋", "◉", "⇄", "⚙" };
     public MainWindow(Store store, bool preview = false)
     {
@@ -61,7 +61,7 @@ public sealed partial class MainWindow : Window
             menu.Items.Add("退出（停止提醒）", null, (_, _) => Dispatcher.Invoke(Exit)); tray.ContextMenuStrip = menu;
             tray.BalloonTipClicked += (_, _) => Dispatcher.Invoke(() => { RestoreWindow(); SwitchView("冲突与提醒"); });
             timer.Tick += (_, _) => { UpdateFreshness(); Tick(); _ = AssistantTick(); }; timer.Start();
-            Loaded += async (_, _) => { Tick(); if (store.Data.Settings.AutoCampusRefresh) _ = RefreshCampus(); if (store.Data.Assistant.AutoRefresh) _ = RefreshAssistant(false); await StartupSync(); };
+            Loaded += async (_, _) => { Tick(); if (store.Data.Settings.AutoCampusRefresh) _ = RefreshCampus(); if (store.Data.Assistant.AutoRefresh) _ = RefreshAssistant(false); await StartupSync(); if (!exiting) CloudResumeNotice(); };
         }
         Closing += (_, e) => { if (!exiting) { e.Cancel = true; Hide(); tray?.ShowBalloonTip(3500, "拾课仍在运行", "已收起到托盘，提醒继续。右键托盘图标可退出。", System.Windows.Forms.ToolTipIcon.Info); } };
         PreviewKeyDown += (_, e) => { if (Workspace.Active != null) return; if (e.Key == Key.N && Keyboard.Modifiers == ModifierKeys.Control) { NewCurrentItem(); e.Handled = true; } if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { search.Focus(); e.Handled = true; } };
@@ -79,9 +79,9 @@ public sealed partial class MainWindow : Window
         shell.Background = GlassTheme.Backdrop;
         shell.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(208) }); shell.ColumnDefinitions.Add(new ColumnDefinition());
         var side = new DockPanel { Margin = new Thickness(20, 28, 16, 20) };
-        var brand = Stack(Text("拾课", 30, Brush("#EDF6EF"), true), Space(5), Text("SHIKE  /  CAMPUS PLANNER", 9, Brush("#A8BDB2")), Space(33));
+        var brand = Stack(Text("拾课", 30, Brush("#183D3B"), true), Space(5), Text("SHIKE  /  CAMPUS PLANNER", 9, Brush("#456764")), Space(33));
         DockPanel.SetDock(brand, Dock.Top); side.Children.Add(brand);
-        var local = Stack(Text("●  仅存于此电脑", 12, Brush("#C3D9CA")), Space(8), Text("无需云端 · 自己掌握每一天", 10, Brush("#8DA89B")), Space(17), Button("退出程序", Exit));
+        var local = Stack(Text("●  仅存于此电脑", 12, Brush("#183D3B")), Space(8), Text("无需云端 · 自己掌握每一天", 10, Brush("#456764")), Space(17), Button("退出程序", Exit));
         DockPanel.SetDock(local, Dock.Bottom); side.Children.Add(local); side.Children.Add(new ScrollViewer { Content = BuildGlassNavigation() });
         shell.Children.Add(new Border { Background = GlassTheme.Sidebar, Child = side });
         var main = new DockPanel { Margin = new Thickness(30, 26, 30, 18) }; Workspace = new ColumnWorkspace(main); Grid.SetColumn(Workspace, 1); shell.Children.Add(Workspace);
@@ -90,7 +90,7 @@ public sealed partial class MainWindow : Window
         var hint = Text("搜索标题、地点、笔记", 11, Muted); hint.Margin = new Thickness(11, 0, 0, 0); hint.IsHitTestVisible = false; searchBox.Children.Add(hint);
         search.TextChanged += (_, _) => hint.Visibility = search.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
         var actions = Row(searchBox, new Border { Width = 12 }, Button("＋ 新建", NewCurrentItem, true)); DockPanel.SetDock(actions, Dock.Right); top.Children.Add(actions);
-        top.Children.Add(Stack(heading, Space(6), subtitle)); DockPanel.SetDock(top, Dock.Top); main.Children.Add(top);
+        top.Children.Add(heading); DockPanel.SetDock(top, Dock.Top); main.Children.Add(top);
         footer.Margin = new Thickness(0, 9, 0, 0); DockPanel.SetDock(footer, Dock.Bottom); main.Children.Add(footer);
         main.Children.Add(body); Content = shell;
         search.TextChanged += (_, _) => Render();
@@ -110,7 +110,7 @@ public sealed partial class MainWindow : Window
             WindowState = WindowStyle == WindowStyle.None ? WindowState.Maximized : WindowState.Normal;
         Activate();
     }
-    public void Exit() { if (!Workspace.CloseAll()) return; exiting = true; DisconnectAssistant(); syncGeneration++; timer.Stop(); tray?.Dispose(); trayIcon?.Dispose(); Close(); Application.Current.Shutdown(); }
+    public void Exit() { if (!Workspace.CloseAll()) return; exiting = true; StopClassroom(); DisconnectAssistant(); syncGeneration++; timer.Stop(); tray?.Dispose(); trayIcon?.Dispose(); Close(); Application.Current.Shutdown(); }
     public void SwitchView(string name)
     {
         if (Workspace.Active != null && !Workspace.CloseAll()) return;
@@ -128,14 +128,23 @@ public sealed partial class MainWindow : Window
         try { action(); store.Save(); Render(); return true; }
         catch (Exception ex) { store.Data = JsonSerializer.Deserialize<AppData>(before)!; UiMessage.Show(this, "未保存：" + ex.Message, "拾课", MessageBoxButton.OK, MessageBoxImage.Error); return false; }
     }
+    static Action HoverHint(FrameworkElement region, FrameworkElement hint, Func<bool>? persistent = null)
+    {
+        void Refresh() => hint.Opacity = region.IsMouseOver || persistent?.Invoke() == true ? 1 : 0;
+        region.MouseEnter += (_, _) => Refresh();
+        region.MouseLeave += (_, _) => Refresh();
+        region.Loaded += (_, _) => Refresh();
+        Refresh();
+        return Refresh;
+    }
     void Render()
     {
         RenderNavigation();
         heading.Text = view;
-        subtitle.Text = view switch { "今日概览" => "给日程留好位置，也给生活留一点空白。", "校园助手" => "课程待办 · 借阅 · 签到  /  读取后保存到本地", "设置与备份" => "你的记录、附件与选择，都留在这台电脑。", _ => "课程 · 考试 · 生活，一处安排。" };
         UpdateFreshness();
         if (view == "校园活动") { RenderCampus(); return; }
         if (view == "笔记与附件") { RenderNotes(); return; }
+        if (view == "智云课堂") { RenderClassroom(); return; }
         if (!string.IsNullOrWhiteSpace(search.Text)) { RenderSearch(); return; }
         switch (view)
         {
@@ -192,7 +201,7 @@ public sealed partial class MainWindow : Window
         right.Children.Add(Section("待办事项", "全部待办", () => SwitchView("待办清单")));
         if (tasks.Count == 0) right.Children.Add(Empty("暂时没有到期的待办", "把需要准备的事情记下来，让大脑轻一点。", () => Edit(null, "待办"), "＋ 添加待办"));
         else foreach (var i in tasks.Take(8)) right.Children.Add(TaskCard(i));
-        var memo = Stack(Text("随手记，也能有所归属", 16, bold: true), Space(9), Text("在日程详情中保存准备笔记和附件。面试前，材料就在手边。", 12, Muted), Space(15), Button("＋ 写一条笔记", () => Edit(null, "笔记")));
+        var memo = Stack(Text("随手记，也能有所归属", 16, bold: true), Space(15), Button("＋ 写一条笔记", () => Edit(null, "笔记")));
         right.Children.Add(Card(memo, "#EDF2E9"));
     }
     UIElement Section(string title, string action, Action click)
@@ -212,7 +221,7 @@ public sealed partial class MainWindow : Window
     UIElement TaskCard(Item i)
     {
         var row = new DockPanel(); var box = new CheckBox { IsChecked = i.Done, ToolTip = "标记完成", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
-        box.Style = CompletionStyle(); Motion.Press(box); DockPanel.SetDock(box, Dock.Left); row.Children.Add(box);
+        Motion.Press(box); DockPanel.SetDock(box, Dock.Left); row.Children.Add(box);
         var b = Button("编辑", () => Edit(new(i, i.Start, i.End))); b.Padding = new Thickness(8, 5, 8, 5); DockPanel.SetDock(b, Dock.Right); row.Children.Add(b);
         var title = Text(i.Title,13,bold:true); if(i.Done) title.TextDecorations=TextDecorations.Strikethrough;
         row.Children.Add(Stack(title,Space(6),Text(i.AssistantNoDue ? "无截止时间" : (i.Done?"已完成 · ":i.Start<DateTime.Now?"已到期 · ":"截止 · ")+i.Start.ToString("MM-dd HH:mm"),11,Muted)));
@@ -304,6 +313,7 @@ public sealed partial class MainWindow : Window
         var dialog = new OpenFileDialog { Filter = "拾课完整备份 (*.zip)|*.zip" };
         if (dialog.ShowDialog(this) != true) return;
         if (UiMessage.Show(this, "恢复会替换当前记录。系统将先保留一份恢复前备份，是否继续？", "恢复本地备份", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
-        try { DisconnectAssistant(); pintiaSession = null; syncGeneration++; store.Restore(dialog.FileName); PeriodSchedule.Migrate(store); NotesModel.Migrate(store); AcademicCalendar.ApplyCached(store.Data); store.Save(); Render(); UiMessage.Show(this, "恢复完成。原数据的备份保存在 data 文件夹。账号密码不在备份中。"); } catch (Exception ex) { UiMessage.Show(this, "未恢复：" + ex.Message); }
+        if (cloudBusy) { UiMessage.Show(this,"请先暂停课堂任务，等待任务停止后再恢复备份。"); return; }
+        try { StopClassroom(); DisconnectAssistant(); pintiaSession = null; syncGeneration++; store.Restore(dialog.FileName); PeriodSchedule.Migrate(store); NotesModel.Migrate(store); AcademicCalendar.ApplyCached(store.Data); store.Save(); Render(); UiMessage.Show(this, "恢复完成。原数据的备份保存在 data 文件夹。账号密码不在备份中。"); } catch (Exception ex) { UiMessage.Show(this, "未恢复：" + ex.Message); }
     }
 }

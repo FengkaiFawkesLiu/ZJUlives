@@ -12,8 +12,8 @@ public sealed partial class MainWindow
         var history = store.Data.Assistant.LibraryHistory;
         string Count(AssistantSource s, string unit) => s.Updated == null ? "未读取" : s.Entries.Count + unit;
         p.Children.Add(Row(
-            Button("当前待归还 · " + Count(current, " 本"), () => { showLibraryHistory = false; assistantPage = 0; Render(); }, !showLibraryHistory),
-            Button("历史借阅 · " + Count(history, " 条"), () => { showLibraryHistory = true; assistantPage = 0; Render(); }, showLibraryHistory)));
+            TabButton("当前待归还 · " + Count(current, " 本"), () => { showLibraryHistory = false; assistantPage = 0; Render(); }, !showLibraryHistory),
+            TabButton("历史借阅 · " + Count(history, " 条"), () => { showLibraryHistory = true; assistantPage = 0; Render(); }, showLibraryHistory)));
         p.Children.Add(Space(12));
         p.Children.Add(Text(showLibraryHistory ? "按归还日期从近到远显示官网可查询的历史；未显示日期的记录保留为空。" : "还书后刷新即可更新；续借请在官网办理，再刷新获取新的应还日期。", 12, Muted));
         if (showLibraryHistory && source.TotalAvailable > source.Entries.Count)

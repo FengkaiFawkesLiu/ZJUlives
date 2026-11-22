@@ -1,0 +1,3 @@
+# Preserve fixture byte offsets and ZIP contents across Windows checkouts.
+build-storage/fixtures/classroom-synthetic.pdf binary
+build-storage/fixtures/classroom-synthetic.pptx binary

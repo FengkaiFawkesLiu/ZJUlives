@@ -1,7 +1,6 @@
 .env
 data/
 build-temp/
-软件/
 
 # Local configuration and encrypted credentials
 .env.*
@@ -32,8 +31,12 @@ build-temp/
 /build-storage/*.pdb
 /build-storage/*.deps.json
 /build-storage/*.runtimeconfig.json
+/build-storage/classroom-*-tests.txt
 
 # OS metadata
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Modularization verification outputs
+/build-modules/

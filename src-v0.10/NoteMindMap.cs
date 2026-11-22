@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -29,11 +29,12 @@ public sealed partial class MainWindow
         var adjacency = nodes.Keys.ToDictionary(k => k, _ => new List<string>());
         foreach (var e in graph.Edges.Where(e => nodes.ContainsKey(e.From) && nodes.ContainsKey(e.To))) { adjacency[e.From].Add(e.To); adjacency[e.To].Add(e.From); }
         if (mindRootKey != null && !nodes.ContainsKey(mindRootKey)) mindRootKey = null;
+        var parents = store.Data.Items.Where(n => n.Kind == "笔记" && n.LibraryId == library.Id && n.ParentId != null && nodes.ContainsKey("note:" + n.ParentId)).ToDictionary(n => NotesModel.Key(n), n => "note:" + n.ParentId);
         var visited = new HashSet<string>();
         MindBranch Branch(string key)
         {
             visited.Add(key); var branch = new MindBranch { Node = nodes[key] };
-            foreach (var child in adjacency[key].OrderByDescending(k => adjacency[k].Count)) if (!visited.Contains(child)) branch.Children.Add(Branch(child));
+            foreach (var child in adjacency[key].Where(k => parents.TryGetValue(k, out var parent) ? parent == key : !parents.ContainsKey(key)).OrderByDescending(k => parents.TryGetValue(k, out var parent) && parent == key).ThenByDescending(k => adjacency[k].Count)) if (!visited.Contains(child)) branch.Children.Add(Branch(child));
             return branch;
         }
         MindBranch root;
@@ -41,7 +42,7 @@ public sealed partial class MainWindow
         else
         {
             root = new() { Node = new("library:" + library.Id, library.Name, "library", "笔记库") };
-            foreach (var node in nodes.Values.OrderBy(n => n.Kind == "course" ? 0 : 1).ThenByDescending(n => adjacency[n.Key].Count)) if (!visited.Contains(node.Key)) root.Children.Add(Branch(node.Key));
+            foreach (var node in nodes.Values.OrderBy(n => parents.ContainsKey(n.Key) ? 1 : 0).ThenBy(n => n.Kind == "course" ? 0 : 1).ThenByDescending(n => adjacency[n.Key].Count)) if (!visited.Contains(node.Key)) root.Children.Add(Branch(node.Key));
         }
         bool Collapsed(MindBranch b) => mindCollapsed.Contains(library.Id + ":" + b.Node.Key);
         double Measure(MindBranch b) { b.Height = Collapsed(b) || b.Children.Count == 0 ? 100 : Math.Max(100, b.Children.Sum(Measure)); return b.Height; }
@@ -53,12 +54,14 @@ public sealed partial class MainWindow
             foreach (var child in b.Children) { Position(child, depth + 1, offset); offset += child.Height; }
         }
         Measure(root); Position(root, 0, 45);
-        var dock = new DockPanel(); var status = Text("思维导图 · 实线为展开分支，虚线为交叉关联", 12, Muted);
+        var dock = new DockPanel(); var status = Text("", 12, Muted); status.Visibility = Visibility.Collapsed;
         var roots = new[] { "整个笔记库" }.Concat(nodes.Values.Select(n => n.Label)).ToArray(); var center = Combo(roots, "整个笔记库"); center.Width = 170; center.SelectedIndex = mindRootKey == null ? 0 : nodes.Keys.ToList().IndexOf(mindRootKey) + 1;
         center.SelectionChanged += (_, _) => { mindRootKey = center.SelectedIndex <= 0 ? null : nodes.Keys.ElementAt(center.SelectedIndex - 1); Render(); };
-        var topbar = Stack(Row(Text("中心", 12, Muted), center, Button("全部展开", () => { mindCollapsed.Clear(); Render(); })), Space(8), status); topbar.Margin = new Thickness(12); DockPanel.SetDock(topbar, Dock.Top); dock.Children.Add(topbar);
+        var topbar = Stack(Row(Text("中心", 12, Muted), center, Button("全部展开", () => { mindCollapsed.Clear(); Render(); })), status); topbar.Margin = new Thickness(12); DockPanel.SetDock(topbar, Dock.Top); dock.Children.Add(topbar);
         var slider = new Slider { Minimum = .35, Maximum = 1.6, Value = .8, Width = 130, VerticalAlignment = VerticalAlignment.Center };
-        var bottom = Row(Text("缩放  ", 11, Muted), slider, Text($"  {visible.Count - (root.Node.Kind == "library" ? 1 : 0)} 个可见节点 · 点击打开，＋/− 折叠", 11, Muted)); bottom.Margin = new Thickness(12); DockPanel.SetDock(bottom, Dock.Bottom); dock.Children.Add(bottom);
+        var nodeHint = Text($"  {visible.Count - (root.Node.Kind == "library" ? 1 : 0)} 个可见节点 · 点击打开，＋/− 折叠", 11, Muted);
+        var bottom = Row(Text("缩放  ", 11, Muted), slider, nodeHint); HoverHint(dock, nodeHint);
+        bottom.Margin = new Thickness(12); DockPanel.SetDock(bottom, Dock.Bottom); dock.Children.Add(bottom);
         var canvas = new Canvas { Width = Math.Max(900, maxDepth * 270 + 340), Height = Math.Max(580, root.Height + 90), Background = Brushes.Transparent };
         var scale = new ScaleTransform(.8, .8); canvas.LayoutTransform = scale;
         var scroll = new ScrollViewer { FocusVisualStyle = null, Content = canvas, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, PanningMode = PanningMode.Both }; dock.Children.Add(scroll);
@@ -76,11 +79,11 @@ public sealed partial class MainWindow
         foreach (var branch in visible) if (!Collapsed(branch)) foreach (var child in branch.Children) if (visibleMap.ContainsKey(child.Node.Key)) { treeEdges.Add(EdgeKey(branch.Node.Key, child.Node.Key)); Curve(branch, child, false); }
         foreach (var edge in graph.Edges) if (visibleMap.TryGetValue(edge.From, out var a) && visibleMap.TryGetValue(edge.To, out var b) && !treeEdges.Contains(EdgeKey(edge.From, edge.To))) Curve(a, b, true);
         var buttons = new Dictionary<string, Button>();
-        updateQuickAppearance = () => { status.Text = quickNoteKey == null ? "实线为展开分支，虚线为交叉关联 · 右键笔记可快捷关联" : "快捷关联中：右键目标；左键任意处或右键起点退出"; foreach (var pair in buttons) pair.Value.BorderBrush = pair.Key == quickNoteKey ? Brush("#E1A34B") : Theme.Line; };
+        updateQuickAppearance = () => { foreach (var pair in buttons) pair.Value.BorderBrush = pair.Key == quickNoteKey ? Brush("#E1A34B") : Theme.Line; };
         foreach (var branch in visible)
         {
             var node = branch.Node; var color = node.Kind == "course" || node.Kind == "library" ? Green : node.Kind == "note" ? Brush("#8B79AF") : Brush("#B38A4D");
-            var button = Button("", () => { if (node.Kind != "library") OpenNoteTarget(node); }); button.Content = Stack(Text(node.Label, 15, color, true), Text(node.Kind == "library" ? "全部笔记" : node.Kind == "note" ? "笔记" : node.Kind == "course" ? "整门课程" : "关联事项", 10, Muted)); button.Width = 210; button.MinHeight = 60; button.MaxHeight = 100; button.HorizontalContentAlignment = HorizontalAlignment.Left; button.ToolTip = node.Label; buttons[node.Key] = button;
+            var button = Button("", () => { if (node.Kind != "library") OpenNoteTarget(node); }); var kindHint = Text(node.Kind == "library" ? "全部笔记" : node.Kind == "note" ? "笔记" : node.Kind == "course" ? "整门课程" : "关联事项", 10, Muted); button.Content = Stack(Text(node.Label, 15, color, NotesModel.IsTopParent(store.Data, node.Key)), kindHint); HoverHint(button, kindHint); button.Width = 210; button.MinHeight = 60; button.MaxHeight = 100; button.HorizontalContentAlignment = HorizontalAlignment.Left; button.ToolTip = node.Label; buttons[node.Key] = button;
             Canvas.SetLeft(button, branch.Position.X); Canvas.SetTop(button, branch.Position.Y - 30); canvas.Children.Add(button);
             button.PreviewMouseRightButtonDown += (_, e) =>
             {
@@ -99,7 +102,7 @@ public sealed partial class MainWindow
         slider.Value = Math.Clamp(Math.Min(Math.Max(300, ActualWidth - 515) / canvas.Width, Math.Max(250, ActualHeight - 330) / canvas.Height), .35, 1);
         scroll.PreviewMouseWheel += (_, e) => { if (Keyboard.Modifiers != ModifierKeys.Control) return; slider.Value = Math.Clamp(slider.Value + (e.Delta > 0 ? .1 : -.1), .35, 1.6); e.Handled = true; };
         if (nodes.Count == 0) { var empty = Text("新建笔记并建立关联，即可展开思维导图。", 15, Muted); Canvas.SetLeft(empty, 300); Canvas.SetTop(empty, 100); canvas.Children.Add(empty); }
-        if (include.Count > 240) status.Text = "当前展示前 240 个节点，请搜索缩小范围。";
+        if (include.Count > 240) { status.Text = "当前展示前 240 个节点，请搜索缩小范围。"; status.Visibility = Visibility.Visible; }
         return GraphGlass.Panel(dock);
     }
 }

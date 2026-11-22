@@ -1,0 +1,117 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "Classroom.Core/1.0.0": {
+        "dependencies": {
+          "DocumentFormat.OpenXml": "3.5.1",
+          "PdfPig": "0.1.16"
+        },
+        "runtime": {
+          "Classroom.Core.dll": {}
+        }
+      },
+      "DocumentFormat.OpenXml/3.5.1": {
+        "dependencies": {
+          "DocumentFormat.OpenXml.Framework": "3.5.1"
+        },
+        "runtime": {
+          "lib/net10.0/DocumentFormat.OpenXml.dll": {
+            "assemblyVersion": "3.5.1.0",
+            "fileVersion": "3.5.1.0"
+          }
+        }
+      },
+      "DocumentFormat.OpenXml.Framework/3.5.1": {
+        "dependencies": {
+          "System.IO.Packaging": "10.0.2"
+        },
+        "runtime": {
+          "lib/net10.0/DocumentFormat.OpenXml.Framework.dll": {
+            "assemblyVersion": "3.5.1.0",
+            "fileVersion": "3.5.1.0"
+          }
+        }
+      },
+      "PdfPig/0.1.16": {
+        "runtime": {
+          "lib/net9.0/UglyToad.PdfPig.Core.dll": {
+            "assemblyVersion": "0.1.16.0",
+            "fileVersion": "0.1.16.0"
+          },
+          "lib/net9.0/UglyToad.PdfPig.DocumentLayoutAnalysis.dll": {
+            "assemblyVersion": "0.1.16.0",
+            "fileVersion": "0.1.16.0"
+          },
+          "lib/net9.0/UglyToad.PdfPig.Fonts.dll": {
+            "assemblyVersion": "0.1.16.0",
+            "fileVersion": "0.1.16.0"
+          },
+          "lib/net9.0/UglyToad.PdfPig.Package.dll": {
+            "assemblyVersion": "0.1.16.0",
+            "fileVersion": "0.1.16.0"
+          },
+          "lib/net9.0/UglyToad.PdfPig.Tokenization.dll": {
+            "assemblyVersion": "0.1.16.0",
+            "fileVersion": "0.1.16.0"
+          },
+          "lib/net9.0/UglyToad.PdfPig.Tokens.dll": {
+            "assemblyVersion": "0.1.16.0",
+            "fileVersion": "0.1.16.0"
+          },
+          "lib/net9.0/UglyToad.PdfPig.dll": {
+            "assemblyVersion": "0.1.16.0",
+            "fileVersion": "0.1.16.0"
+          }
+        }
+      },
+      "System.IO.Packaging/10.0.2": {
+        "runtime": {
+          "lib/net10.0/System.IO.Packaging.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.225.61305"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Classroom.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DocumentFormat.OpenXml/3.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zxdOf5VVCe/uNklbRhj8dVBzQGj3DoqkUuqOp9cAZVuN8mNYDjof1lvSQA2OQNr8Ptc9d7pbA7Azq/ReaI3FpA==",
+      "path": "documentformat.openxml/3.5.1",
+      "hashPath": "documentformat.openxml.3.5.1.nupkg.sha512"
+    },
+    "DocumentFormat.OpenXml.Framework/3.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U5txtc3ORno73xQx9Lf2gWzfaSZnZwKHfLkTAslhlew9lxe5XbUiCt0dY1fHeAf8yRqszUAe5i/+xLC9R/Xfsw==",
+      "path": "documentformat.openxml.framework/3.5.1",
+      "hashPath": "documentformat.openxml.framework.3.5.1.nupkg.sha512"
+    },
+    "PdfPig/0.1.16": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qQcbsNMYVY+K5ELptax2S8thNMk0+rSQq3H/KdYj3LLcko8yTCz8y5KIvsKxIyAuTN0ZYNnfsZkM+0EvxTwHVA==",
+      "path": "pdfpig/0.1.16",
+      "hashPath": "pdfpig.0.1.16.nupkg.sha512"
+    },
+    "System.IO.Packaging/10.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JTpM4z0wpoIHHDvlCU27HsXo+zVnpWib94HXQpzzr+jc/P9NYf4w353AK4MXyGq/grm1mbLi7eXsOsDU8sGmNg==",
+      "path": "system.io.packaging/10.0.2",
+      "hashPath": "system.io.packaging.10.0.2.nupkg.sha512"
+    }
+  }
+}

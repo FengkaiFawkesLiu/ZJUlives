@@ -55,7 +55,9 @@ public static class Tests
         Test("Corrupt backup leaves current data intact", () => { var s = new Store(Path.Combine(temp, "bad")); s.Data.Items.Add(Event("保留")); s.Save(); var path = Path.Combine(temp, "bad.zip"); using (var z = ZipFile.Open(path, ZipArchiveMode.Create)) { using var w = new StreamWriter(z.CreateEntry("data.json").Open()); w.Write("{\"Version\":1,\"Items\":["); } try { s.Restore(path); throw new Exception("Invalid archive accepted"); } catch (JsonException) { } Assert(s.Data.Items.Count == 1 && s.Data.Items[0].Title == "保留"); });
         Test("Malicious attachment path rejected", () => { var data = new AppData(); var i = Event(); i.Attachments.Add(new() { Name = "bad", File = "../escape" }); data.Items.Add(i); try { Engine.Validate(data); throw new Exception("Path accepted"); } catch (InvalidDataException) { } });
         Test("School parser respects weekdays, halves and parity", () => { var s = new Settings { TermMonday = day, Weeks = 16, SecondHalfWeek = 9 }; string courses = """{"kbList":[{"kcmc":"数学","xqj":"1","djj":"1","skcd":"2","xxq":"秋","dsz":"0","kch_id":"math"}]}"""; var b = SchoolParser.Parse(courses, "{\"items\":[]}", s); Assert(b.Courses.Count == 4 && b.Courses[0].Start == day.AddHours(8)); });
+        Test("School parser attaches credits scores and grade points", () => { var s = new Settings { TermMonday = day, Weeks = 1 }; var courses = """{"kbList":[{"kcmc":"数学","xqj":"1","djj":"1","skcd":"2","kch_id":"math"}]}"""; var grades = """{"items":[{"xkkh":"math","kcmc":"数学","xf":"3.0","cj":"92","jd":"4.8"}]}"""; var b = SchoolParser.Parse(courses, "{\"items\":[]}", s, grades); Assert(b.Courses.Count == 1 && b.Courses[0].Credit == "3.0" && b.Courses[0].Score == "92" && b.Courses[0].GradePoint == "4.8"); });
         Test("Exam dates and seating parsed without guessing missing dates", () => { var s = new Settings(); var b = SchoolParser.Parse("{\"kbList\":[]}", """{"items":[{"kcmc":"数学","xkkh":"m1","kssj":"2026-12-20(09:00-11:00)","jsmc":"东1","zwxh":"15"},{"kcmc":"未安排","xkkh":"m2","kssj":"待定"}]}""", s); Assert(b.Exams.Count == 1 && b.Warnings.Count == 1 && b.Exams[0].Location.Contains("15")); });
+        Test("Midterm and final from one row stay distinct", () => { var b = SchoolParser.Parse("{\"kbList\":[]}", """{"items":[{"kcmc":"数学","xkkh":"m1","kssj":"2026年12月20日(09:00-11:00)","qzkssj":"2026年11月01日(08:00-10:00)","qzjsmc":"东2","qzzwxh":"12"}]}""", new()); Assert(b.Exams.Count == 2 && b.Exams.Select(e => e.Key).Distinct().Count() == 2 && b.Exams.Any(e => e.Title.Contains("期中") && e.Start.Month == 11 && e.Location.Contains("东2") && e.Location.Contains("12"))); });
         Test("Unexpected school response fails before merge", () => { try { SchoolParser.Parse("{\"error\":true}", "{}", new()); throw new Exception("Invalid response accepted"); } catch (InvalidOperationException) { } });
         UpgradeTests.Run(Test, temp);
         CampusTests.Run(Test, temp);
@@ -65,6 +67,8 @@ public static class Tests
         AcademicLogoutTests.Run(Test);
         CampusAssistantTests.Run(Test);
         LibraryTests.Run(Test);
+        ClassroomTests.Run(Test, temp);
+        ClassroomQueueTests.Run(Test, temp);
         var report = args.Length > 1 ? args[^1] : Path.Combine(temp, "test-results.txt");
         messages.Add($"\n{messages.Count - failures}/{messages.Count} passed. Temporary fixtures: {temp}");
         File.WriteAllLines(report, messages); return failures == 0 ? 0 : 1;

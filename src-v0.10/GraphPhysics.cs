@@ -12,11 +12,15 @@ internal sealed class GraphPhysics
     readonly Dictionary<string, Vector> velocities;
     readonly List<NoteEdge> edges;
     readonly string[] keys;
+    readonly HashSet<string> topParents;
+    internal const double TopParentRepulsion = 1.25;
+    internal static double RepulsionScale(string a,string b,ISet<string>? roots) => roots != null && (roots.Contains(a)||roots.Contains(b)) ? TopParentRepulsion : 1;
     public string? Held { get; set; }
-    public GraphPhysics(Dictionary<string, Point> positions, List<NoteEdge> edges)
+    public GraphPhysics(Dictionary<string, Point> positions, List<NoteEdge> edges, IEnumerable<string>? topParents = null)
     {
         this.positions = positions; this.edges = edges; keys = positions.Keys.ToArray();
         velocities = keys.ToDictionary(k => k, _ => new Vector());
+        this.topParents = topParents?.ToHashSet() ?? new HashSet<string>();
     }
     public void Move(string key, Point point)
     {
@@ -34,7 +38,8 @@ internal sealed class GraphPhysics
             var delta = positions[keys[j]] - positions[keys[i]];
             if (delta.Length < .01) delta = new Vector(1, 1);
             double distance = delta.Length;
-            var push = delta / distance * Math.Min(4, 6000 / Math.Max(400, distance * distance));
+            // A root adds 25%, without stacking for two roots or raising the near-field cap.
+            var push = delta / distance * Math.Min(4, 6000 * RepulsionScale(keys[i],keys[j],topParents) / Math.Max(400, distance * distance));
             force[keys[i]] -= push; force[keys[j]] += push;
         }
         foreach (var edge in edges)

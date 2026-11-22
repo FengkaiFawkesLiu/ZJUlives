@@ -322,8 +322,15 @@ public static class UiMessage
             button.IsDefault = value == defaultResult || defaultResult == MessageBoxResult.None && value == choices[0].Item2;
             actions.Children.Add(button);
         }
-        body.Children.Add(actions);
-        panel.Content = new ScrollViewer { Background=Theme.Brush("#EFF3E9"), Content = new Border { Background=Theme.Brush("#EFF3E9"), Padding = new Thickness(24), Child = body } };
+        var hover = new GlassSelectionLayer(actions, 10);
+        foreach (UIElement child in actions.Children) if (child is Button button)
+        {
+            button.FocusVisualStyle = null;
+            button.MouseEnter += (_, _) => hover.Select(button);
+        }
+        actions.MouseLeave += (_, _) => hover.Select(null);
+        body.Children.Add(hover);
+        panel.Content = new ScrollViewer { Background=Theme.Brush("#EFFBF9"), Content = new Border { Background=Theme.Brush("#EFFBF9"), Padding = new Thickness(24), Child = body } };
         panel.ShowDialog(); return result;
     }
 }

@@ -62,9 +62,15 @@ internal static class NoteEditorUi
     public static GlassSelectionLayer ToolbarSelection(WrapPanel tools)
     {
         var layer=new GlassSelectionLayer(tools,11,2);
-        tools.AddHandler(Button.ClickEvent,new RoutedEventHandler((_,e)=>{if(e.Source is Button b && closeDisclosures.TryGetValue(b,out var close))layer.Select(b.Tag is true?b:null);}));
-        foreach(UIElement child in tools.Children)if(child is ComboBox combo){combo.DropDownOpened+=(_,_)=>layer.Select(combo);combo.DropDownClosed+=(_,_)=>layer.Select(null);}
-        return layer;
+        foreach (UIElement child in tools.Children)
+        {
+            if (child is FrameworkElement element && child is Button or ComboBox)
+            {
+                element.FocusVisualStyle = null;
+                element.MouseEnter += (_, _) => layer.Select(element);
+            }
+        }
+        tools.MouseLeave += (_, _) => layer.Select(null);        return layer;
     }
     public static Border Setting(string label, FrameworkElement control)
     {
@@ -98,43 +104,11 @@ internal static class NoteEditorUi
     }
     public static void Install(AppPanel panel)
     {
-        panel.Resources=(ResourceDictionary)XamlReader.Parse("""
-        <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-          <Style TargetType="ComboBox">
-            <Setter Property="MinHeight" Value="32"/><Setter Property="FontSize" Value="12"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid>
-              <Border x:Name="edge" Background="Transparent" CornerRadius="7"/>
-              <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Margin="5,4,24,4" VerticalAlignment="Center" IsHitTestVisible="False"/>
-              <Path x:Name="arrow" Data="M 0 0 L 4 4 L 0 8" Width="5" Height="9" Stroke="#365E49" StrokeThickness="1.4" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,9,0" IsHitTestVisible="False"/>
-              <ToggleButton Focusable="False" IsChecked="{Binding IsDropDownOpen,RelativeSource={RelativeSource TemplatedParent},Mode=TwoWay}"><ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border Background="Transparent"/></ControlTemplate></ToggleButton.Template></ToggleButton>
-              <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="None"><Border x:Name="menu" Background="#F0F4E9" BorderBrush="{DynamicResource Glass.Edge}" BorderThickness="1" CornerRadius="11" Padding="5" Margin="0,6,0,0" MinWidth="{Binding ActualWidth,RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="300"><ScrollViewer CanContentScroll="True" VerticalScrollBarVisibility="Auto"><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border></Popup>
-            </Grid><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="edge" Property="Background" Value="#285B9671"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
-          </Style>
-          <Style TargetType="ComboBoxItem"><Setter Property="FocusVisualStyle" Value="{x:Null}"/><Setter Property="Foreground" Value="#294C39"/><Setter Property="Padding" Value="10,7"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="item" Background="Transparent" CornerRadius="7" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="item" Property="Background" Value="#35FFFFFF"/></Trigger><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="item" Property="Background" Value="#60FFFFFF"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-          <Style TargetType="ScrollBar"><Setter Property="Width" Value="9"/><Setter Property="Background" Value="Transparent"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ScrollBar"><Grid Background="Transparent"><Track x:Name="PART_Track" Orientation="{TemplateBinding Orientation}" Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}" Value="{TemplateBinding Value}" ViewportSize="{TemplateBinding ViewportSize}" IsDirectionReversed="True"><Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.DecreaseRepeatButton><Track.Thumb><Thumb><Thumb.Template><ControlTemplate TargetType="Thumb"><Border CornerRadius="3" Margin="2" Background="#65738D7A"/></ControlTemplate></Thumb.Template></Thumb></Track.Thumb><Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False"><RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.IncreaseRepeatButton></Track></Grid></ControlTemplate></Setter.Value></Setter></Style>
-        </ResourceDictionary>
-        """);
+        // Compact toolbar geometry inherits the same materials and templates as every page.
+        var compact = new Style(typeof(ComboBox), (Style)Application.Current.Resources[typeof(ComboBox)]);
+        compact.Setters.Add(new Setter(Control.MinHeightProperty, 32d));
+        compact.Setters.Add(new Setter(Control.FontSizeProperty, 12d));
+        panel.Resources[typeof(ComboBox)] = compact;
     }
-    public static void AnimateMenu(ComboBox combo)
-    {
-        if(Equals(combo.Tag,"animated-note-menu"))return;combo.Tag="animated-note-menu";
-        GlassSelectionLayer? layer=null;
-        void Selection(){if(layer!=null && combo.ItemContainerGenerator.ContainerFromIndex(combo.SelectedIndex) is FrameworkElement item)layer.Select(item);}
-        combo.SelectionChanged+=(_,_)=>Selection();
-        void Arrow(bool open){combo.ApplyTemplate();if(combo.Template.FindName("arrow",combo) is FrameworkElement a){a.RenderTransformOrigin=new Point(.5,.5);if(a.RenderTransform is not RotateTransform)a.RenderTransform=new RotateTransform();GlassSelectionLayer.Animate((RotateTransform)a.RenderTransform,RotateTransform.AngleProperty,open?90:0);}}
-        combo.DropDownClosed+=(_,_)=>Arrow(false);
-        combo.DropDownOpened+=(_,_)=>
-        {
-            ClosePeers(combo);
-            Arrow(true);
-            if(combo.Template.FindName("menu",combo) is Border frame && frame.Child is UIElement child && child is not GlassSelectionLayer){frame.Child=null;layer=new GlassSelectionLayer(child,8);frame.Child=layer;layer.PreviewMouseMove+=(_,e)=>{DependencyObject? node=e.OriginalSource as DependencyObject;while(node!=null && node is not ComboBoxItem)node=node is Visual?VisualTreeHelper.GetParent(node):null;if(node is ComboBoxItem item)layer.Select(item);};layer.MouseLeave+=(_,_)=>Selection();combo.Dispatcher.BeginInvoke(new Action(Selection));}
-            if(!Motion.Enabled)return;
-            if(combo.Template.FindName("menu",combo) is FrameworkElement menu)
-            {
-                var shift=new TranslateTransform(0,-6); menu.RenderTransform=shift;
-                shift.BeginAnimation(TranslateTransform.YProperty,new DoubleAnimation(0,TimeSpan.FromMilliseconds(Motion.DurationMs)) { EasingFunction=new CubicEase { EasingMode=EasingMode.EaseOut } });
-                menu.BeginAnimation(UIElement.OpacityProperty,new DoubleAnimation(.35,1,TimeSpan.FromMilliseconds(Motion.DurationMs)));
-            }
-        };
-    }
+    public static void AnimateMenu(ComboBox combo) => GlassMenus.AnimateMenu(combo, ClosePeers);
 }

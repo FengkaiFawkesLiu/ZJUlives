@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,38 +15,8 @@ public static class TaskCategories
         item.AssistantKey?.StartsWith("courses:") == true || item.AssistantKey?.StartsWith("pintia:") == true ? "作业" :
         item.TaskCategory == "作业" ? "作业" : "其他";
     public static IEnumerable<Item> Items(AppData data, string category) => data.Items
-        .Where(i => !i.Cancelled && (category == "考试" ? i.Kind == "考试" : i.Kind == "待办" && Of(i) == category))
+        .Where(i => !i.Cancelled && (category == "考试" ? i.Kind == "考试" && i.End > DateTime.Now : i.Kind == "待办" && Of(i) == category))
         .OrderBy(i => category != "考试" && i.Done).ThenBy(i => i.AssistantNoDue ? DateTime.MaxValue : i.Start);
-}
-public static class Motion
-{
-    public const int DurationMs = 500;
-    public static bool Enabled { get; set; } = true;
-    public static void Move(FrameworkElement element, double from, int ms = DurationMs)
-    {
-        if (!Enabled) return;
-        var translate = new TranslateTransform(); element.RenderTransform = translate;
-        translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(from, 0, TimeSpan.FromMilliseconds(ms)) {
-            EasingFunction = new BackEase { Amplitude = .35, EasingMode = EasingMode.EaseOut } });
-    }
-    public static void Enter(FrameworkElement element)
-    {
-        if (!Enabled) return;
-        Move(element, 24, DurationMs);
-        element.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(.12, 1, TimeSpan.FromMilliseconds(Motion.DurationMs)) { EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } });
-    }
-    public static void Press(Control control)
-    {
-        var scale = new ScaleTransform(1,1); control.RenderTransformOrigin = new Point(.5,.5); control.RenderTransform = scale;
-        void Animate(double value) {
-            if (!Enabled) return;
-            foreach(var property in new[]{ScaleTransform.ScaleXProperty, ScaleTransform.ScaleYProperty})
-                scale.BeginAnimation(property, new DoubleAnimation(value, TimeSpan.FromMilliseconds(Motion.DurationMs)) { EasingFunction = value < 1 ? new CubicEase { EasingMode=EasingMode.EaseOut } : new BackEase { Amplitude=.5, EasingMode=EasingMode.EaseOut } });
-        }
-        control.PreviewMouseLeftButtonDown += (_,_) => { if (!Enabled) return; scale.BeginAnimation(ScaleTransform.ScaleXProperty,null); scale.BeginAnimation(ScaleTransform.ScaleYProperty,null); scale.ScaleX=scale.ScaleY=.94; };
-        control.PreviewMouseLeftButtonUp += (_,_) => Animate(1);
-        control.MouseLeave += (_,_) => Animate(1);
-    }
 }
 public sealed partial class MainWindow
 {
@@ -58,6 +28,7 @@ public sealed partial class MainWindow
     Rect lastGlassBounds = Rect.Empty;
     FrameworkElement BuildGlassNavigation()
     {
+        GlassHover.SetIsExcluded(navigation,true);
         navGlass.RenderTransform=navGlassPosition;
         glassNavigation.Children.Add(navGlass); glassNavigation.Children.Add(navigation);
         navigation.LayoutUpdated += (_,_) => PositionNavGlass();
@@ -156,15 +127,15 @@ public sealed partial class MainWindow
             var button=Button(label,action); navButtons[label=="知识笔记"?"笔记与附件":label]=button; button.HorizontalContentAlignment=HorizontalAlignment.Left;
             button.Padding=new Thickness(13,11,8,11); button.Margin=new Thickness(0,2,0,2);
             button.Background=Brushes.Transparent;
-            button.Foreground=Brushes.White; button.BorderThickness=new Thickness(0);
+            button.Foreground=Ink; button.BorderThickness=new Thickness(0);
             var caption=new StackPanel { Orientation=Orientation.Horizontal };
             string? icon=label switch { "日常安排"=>"calendar","学习记录"=>"book","知识笔记"=>"note","校园服务"=>"school","设置与备份"=>"settings",_=>null };
-            if(icon!=null){var glyph=NoteEditorUi.Icon(icon,Brush("#E3EFE6"));glyph.Margin=new Thickness(0,0,10,0);caption.Children.Add(glyph);}
-            caption.Children.Add(Text(label,13,Brush("#DCE9E2")));button.Content=caption;
+            if(icon!=null){var glyph=NoteEditorUi.Icon(icon,Brush("#183D3B"));glyph.Margin=new Thickness(0,0,10,0);caption.Children.Add(glyph);}
+            caption.Children.Add(Text(label,13,Brush("#183D3B")));button.Content=caption;
             System.Windows.Automation.AutomationProperties.SetName(button,label);
             if(expanded.HasValue) {
                 button.Content=null;
-                var layout=new DockPanel(); var arrow=Text("›",17,Brush("#BDD1C5")); arrow.RenderTransformOrigin=new Point(.5,.5);
+                var layout=new DockPanel(); var arrow=Text("›",17,Brush("#183D3B")); arrow.RenderTransformOrigin=new Point(.5,.5);
                 arrow.RenderTransform=new RotateTransform(expanded.Value?90:0); DockPanel.SetDock(arrow,Dock.Right); layout.Children.Add(arrow); layout.Children.Add(caption);
                 button.Content=layout;button.HorizontalContentAlignment=HorizontalAlignment.Stretch;
                 navArrows[label]=(RotateTransform)arrow.RenderTransform;
@@ -178,7 +149,7 @@ public sealed partial class MainWindow
             navigation.Children.Add(Nav(group,()=>ToggleNavigation(group),expanded:expandedGroup==group));
 
             var branch=new StackPanel { Margin=new Thickness(14,0,0,0),Tag="group-branch", Visibility=expandedGroup==group?Visibility.Visible:Visibility.Collapsed, ClipToBounds=true, Height=expandedGroup==group?double.NaN:0, Opacity=expandedGroup==group?1:0 }; navBranches[group]=branch;
-            string[] children=group=="日常安排"?new[]{"今日概览","周课表","待办清单"}:group=="学习记录"?new[]{"笔记与附件"}:new[]{"校园助手","校园活动","冲突与提醒"};
+            string[] children=group=="日常安排"?new[]{"今日概览","周课表","待办清单"}:group=="学习记录"?new[]{"笔记与附件"}:new[]{"校园助手","智云课堂","校园活动","冲突与提醒"};
             foreach(var child in children) {
                 string target=child;
                 branch.Children.Add(Nav(child=="笔记与附件"?"知识笔记":child,()=>{if(target=="待办清单")ToggleNavigation(group,true);else SwitchView(target);},view==target,child=="待办清单"?tasksExpanded:null));

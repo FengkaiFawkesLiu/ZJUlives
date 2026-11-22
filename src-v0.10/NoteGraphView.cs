@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -31,11 +31,11 @@ public sealed partial class MainWindow
         int total = included.Count;
         var nodes = graph.Nodes.Where(n => included.Contains(n.Key)).Take(240).ToList(); var nodeKeys = nodes.Select(n => n.Key).ToHashSet();
         var edges = graph.Edges.Where(e => nodeKeys.Contains(e.From) && nodeKeys.Contains(e.To)).ToList();
-        var dock = new DockPanel();
-        var quickStatus = Text("右键笔记节点，开始快捷关联", 12, Green, true);
-        var quickBanner = new Border { Background = Brushes.Transparent, Padding = new Thickness(18, 16, 18, 10), Child = quickStatus };
+        var topParents = nodes.Where(n=>NotesModel.IsTopParent(store.Data,n.Key)).Select(n=>n.Key).ToHashSet();
+        var dock = new DockPanel { Background=Brushes.Transparent };
+        var quickStatus = Text("", 12, Green, true);
+        var quickBanner = new Border { Background = Brushes.Transparent, Padding = new Thickness(18, 16, 18, 10), Child = quickStatus, Visibility = Visibility.Collapsed };
         DockPanel.SetDock(quickBanner, Dock.Top); dock.Children.Add(quickBanner);
-        var legend = Row(Text("● 笔记   ", 11, Brush("#8B79AF")), Text("● 课程   ", 11, Green), Text("● 其他事项   ", 11, Brush("#B38A4D")), Text("点击打开 · 拖动节点或空白处", 11, Muted)); legend.Margin = new Thickness(14, 10, 14, 10); DockPanel.SetDock(legend, Dock.Top); dock.Children.Add(legend);
         var bottom = new DockPanel { Margin = new Thickness(14, 8, 14, 12) }; DockPanel.SetDock(bottom, Dock.Bottom); dock.Children.Add(bottom);
         var hint = quickStatus; // Operational feedback belongs in the top banner, not the lower-left corner.
         var slider = new Slider { Minimum = .01, Maximum = 1.8, Value = .7, Width = 125, VerticalAlignment = VerticalAlignment.Center, ToolTip = "缩放图谱" };
@@ -46,15 +46,19 @@ public sealed partial class MainWindow
         if (nodes.Count == 0)
         {
             var empty = Stack(Text(query.Length > 0 ? "没有找到相关节点" : "让想法开始连接", 23, Green, true), Space(12), Text("新建笔记，通过“关联笔记”和“关联课程”建立连线。", 14, Muted), Space(20), Button("＋ 新建笔记", () => EditKnowledgeNote(null), true));
-            Canvas.SetLeft(empty, 90); Canvas.SetTop(empty, 150); canvas.Children.Add(empty);
+            // Empty-state UI belongs to the viewport, not transformed world coordinates.
+            empty.Name="GraphEmptyState";empty.Margin=new Thickness(24,36,24,24);
+            empty.VerticalAlignment=VerticalAlignment.Top;empty.HorizontalAlignment=HorizontalAlignment.Stretch;
+            foreach(var action in empty.Children.OfType<Button>())action.HorizontalAlignment=HorizontalAlignment.Left;
+            scroll.Children.Add(empty);slider.IsEnabled=false;
         }
-        var positions = ForcePositions(nodes, edges);
+        var positions = ForcePositions(nodes, edges, topParents);
         foreach (var n in nodes) if (library.Positions.TryGetValue(n.Key, out var saved)) positions[n.Key] = new Point(saved.X, saved.Y);
         if (positions.Count > 0) { canvas.Width = Math.Max(1150, positions.Values.Max(p => p.X) + 100); canvas.Height = Math.Max(820, positions.Values.Max(p => p.Y) + 100); }
         var lines = new Dictionary<NoteEdge, Line>();
         var dots = new Dictionary<string, Ellipse>();
         var elements = new Dictionary<string, FrameworkElement>();
-        var physics = new GraphPhysics(positions, edges);
+        var physics = new GraphPhysics(positions, edges, topParents);
         var timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(16.667) };
         int quiet = 0, frames = 0; bool dirty = false;
         void DrawNodes()
@@ -77,10 +81,9 @@ public sealed partial class MainWindow
         dock.Unloaded += (_, _) => { timer.Stop(); physics.Held = null; physics.Stop(); if (dirty) { dirty = false; SavePositions(); } };
         updateQuickAppearance = () =>
         {
-            var source = nodes.FirstOrDefault(n => n.Key == quickNoteKey);
-            quickStatus.Text = quickNoteKey == null ? "右键笔记节点，开始快捷关联" : $"快捷关联：{source?.Label ?? "已选笔记"} → 右键目标节点关联；左键任意位置或右键起点退出";
+            quickBanner.Visibility = total > 240 ? Visibility.Visible : Visibility.Collapsed;
+            quickStatus.Text = total > 240 ? $"当前显示前 240 / {total} 个节点，请搜索缩小范围" : "";
             foreach (var pair in dots) { pair.Value.Stroke = pair.Key == quickNoteKey ? Brush("#90E1A34B") : Brush("#85FFFFFF"); pair.Value.StrokeThickness = 1.5; }
-            if (total > 240 && quickNoteKey == null) quickStatus.Text = $"当前显示前 240 / {total} 个节点，请搜索缩小范围";
         };
         foreach (var edge in edges)
         {
@@ -98,13 +101,13 @@ public sealed partial class MainWindow
         }
         foreach (var node in nodes)
         {
-            int degree = edges.Count(e => e.From == node.Key || e.To == node.Key);
-            double diameter = Math.Min(48, 27 + degree * 3);
+            bool topParent = topParents.Contains(node.Key);
+            double diameter = topParent ? 42 : 30;
             var color = node.Kind == "note" ? Brush("#8B79AF") : node.Kind == "course" ? Green : Brush("#B38A4D");
             var baseColor = node.Missing ? Muted : color;
             var dot = new Ellipse { Width = diameter, Height = diameter, Fill = baseColor, Stroke = Brush("#85FFFFFF"), StrokeThickness = 1.5 };
             dots[node.Key] = dot;
-            var label = Text(node.Label, 14, Ink, degree > 1); label.TextAlignment = TextAlignment.Center; label.MaxHeight = 48;
+            var label = Text(node.Label, 14, Ink); label.FontWeight = topParent ? FontWeights.Bold : FontWeights.Normal; label.TextAlignment = TextAlignment.Center; label.MaxHeight = 48;
             var element = new Border { Width = 150, Background = Brushes.Transparent, Cursor = Cursors.Hand, ToolTip = node.Label + "\n" + node.Detail, Child = Stack(new Border { Height = 54, Child = dot }, label), Opacity = query.Length > 0 && !matches.Contains(node.Key) ? .48 : 1 };
             void Position() { Canvas.SetLeft(element, positions[node.Key].X - 75); Canvas.SetTop(element, positions[node.Key].Y - 27); }
             element.RenderTransform = new ScaleTransform(1 / slider.Value, 1 / slider.Value, 75, 27);
@@ -115,10 +118,10 @@ public sealed partial class MainWindow
                 if (quickNoteKey == node.Key) { ExitQuickAssociation(); return; }
                 if (quickNoteKey == null)
                 {
-                    if (node.Kind != "note" || node.Missing) { hint.Text = "请先右键一个笔记节点作为起点"; return; }
+                    if (node.Kind != "note" || node.Missing) { quickBanner.Visibility = Visibility.Visible; hint.Text = "请先右键一个笔记节点作为起点"; return; }
                     quickNoteKey = node.Key; quickNoteLibrary = library.Id; updateQuickAppearance?.Invoke(); return;
                 }
-                if (node.Missing) { hint.Text = "此节点的原事项已移除，无法新建关联"; return; }
+                if (node.Missing) { quickBanner.Visibility = Visibility.Visible; hint.Text = "此节点的原事项已移除，无法新建关联"; return; }
                 var sourceKey = quickNoteKey;
                 quickGraphZoom = slider.Value; quickGraphHorizontal = scroll.HorizontalOffset; quickGraphVertical = scroll.VerticalOffset;
                 if (Commit(() =>
@@ -154,7 +157,7 @@ public sealed partial class MainWindow
         scroll.MouseLeftButtonUp += (_, _) => { pan = null; scroll.ReleaseMouseCapture(); scroll.Cursor = Cursors.Arrow; };
         scroll.LostMouseCapture += (_, _) => { pan = null; scroll.Cursor = Cursors.Arrow; };
         var fit = Button("显示全部",()=>{slider.Value=scroll.Fit(positions.Values);}); fit.Padding=new Thickness(8,3,8,3);DockPanel.SetDock(fit,Dock.Right);bottom.Children.Insert(0,fit);
-        var reset = Button("重排", () => { var layout = ForcePositions(nodes, edges); foreach (var p in layout) positions[p.Key] = p.Value; physics.Stop(); dirty = true; DrawNodes(); Wake(); }); reset.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(reset, Dock.Right); bottom.Children.Insert(0, reset);
+        var reset = Button("重排", () => { var layout = ForcePositions(nodes, edges, topParents); foreach (var p in layout) positions[p.Key] = p.Value; physics.Stop(); dirty = true; DrawNodes(); Wake(); }); reset.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(reset, Dock.Right); bottom.Children.Insert(0, reset);
         var save = Button("保存布局", () => { timer.Stop(); physics.Stop(); dirty = false; SavePositions(); }, true); save.Padding = new Thickness(8, 3, 8, 3); DockPanel.SetDock(save, Dock.Right); bottom.Children.Insert(0, save);
         scroll.Loaded += (_, _) => {
             slider.Value = quickNoteKey != null && quickGraphZoom.HasValue ? quickGraphZoom.Value : scroll.Fit(positions.Values);
@@ -162,7 +165,7 @@ public sealed partial class MainWindow
         };
         return GraphGlass.Panel(dock);
     }
-    internal static Dictionary<string, Point> ForcePositions(List<NoteNode> nodes, List<NoteEdge> edges)
+    internal static Dictionary<string, Point> ForcePositions(List<NoteNode> nodes, List<NoteEdge> edges, ISet<string>? topParents = null)
     {
         var p = new Dictionary<string, Point>();
         for (int i = 0; i < nodes.Count; i++) { double angle = i * 2.399963; double radius = 50 + 26 * Math.Sqrt(i); p[nodes[i].Key] = new Point(560 + radius * Math.Cos(angle), 385 + radius * Math.Sin(angle)); }
@@ -172,7 +175,7 @@ public sealed partial class MainWindow
             for (int i = 0; i < nodes.Count; i++) for (int j = i + 1; j < nodes.Count; j++)
             {
                 var delta = p[nodes[i].Key] - p[nodes[j].Key]; double distance = Math.Max(5, delta.Length); if (distance > 350) continue;
-                var push = delta / distance * (90000 / (distance * distance)); force[nodes[i].Key] += push; force[nodes[j].Key] -= push;
+                var push = delta / distance * Math.Min(3600,90000 * GraphPhysics.RepulsionScale(nodes[i].Key,nodes[j].Key,topParents) / (distance * distance)); force[nodes[i].Key] += push; force[nodes[j].Key] -= push;
             }
             foreach (var edge in edges) { var delta = p[edge.To] - p[edge.From]; double length = Math.Max(1, delta.Length); var pull = delta / length * (length - 150) * .035; force[edge.From] += pull; force[edge.To] -= pull; }
             foreach (var node in nodes) { var next = p[node.Key] + force[node.Key]; p[node.Key] = next; }

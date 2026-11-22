@@ -63,7 +63,8 @@ public static class UpgradeTests
         test("Offline startup refresh leaves previous timestamp and data", () =>
         {
             var data = new AppData(); data.Settings.LastSync = new DateTime(2026, 9, 16); string before = JsonSerializer.Serialize(data); var provider = new FakeProvider(true);
-            try { SchoolSync.Fetch(new("fake", "fake"), data.Settings, () => provider).GetAwaiter().GetResult(); throw new Exception("Offline accepted"); } catch (HttpRequestException) { }
+            try { SchoolSync.Fetch(new("fake", "fake"), data.Settings, () => provider).GetAwaiter().GetResult(); throw new Exception("Offline accepted"); }
+            catch (InvalidOperationException ex) { Assert(ex.Message == "学校登录连接失败：offline"); }
             Assert(provider.Disposed && JsonSerializer.Serialize(data) == before);
         });
         test("Holiday course exchanges operate in both directions", () =>

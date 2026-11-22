@@ -18,6 +18,7 @@ public sealed partial class MainWindow
         var legend = Row(Text("● 课程", 11, Kind("课程")), new Border { Width = 20 }, Text("● 考试", 11, Kind("考试")), new Border { Width = 20 }, Text("● 个人活动", 11, Kind("活动")), new Border { Width = 20 }, Text("点击日程可编辑 · 双击空白处添加", 11, Muted));
         if (!showDate) { legend.Children.RemoveAt(legend.Children.Count - 1); legend.Children.RemoveAt(legend.Children.Count - 1); }
         legend.Margin = new Thickness(0, 0, 0, 15); DockPanel.SetDock(legend, Dock.Top); root.Children.Add(legend);
+        HoverHint(root, legend);
         var start = week ? Engine.Monday(date) : date.Date; int count = week ? 7 : 1;
         var headers = new Grid { Margin = new Thickness(0, 0, 17, 0) }; headers.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(49) });
         for (int day = 0; day < count; day++)

@@ -15,7 +15,7 @@ public sealed class TimeWheel : Border
     public TimeWheel(DateTime value)
     {
         hours = new WheelColumn(24, value.Hour, "小时"); minutes = new WheelColumn(60, value.Minute, "分钟");
-        Background = Brushes.White; BorderBrush = Line; BorderThickness = new Thickness(1);
+        SetResourceReference(BackgroundProperty,"Glass.Input"); BorderBrush = GlassTheme.Edge; BorderThickness = new Thickness(1);
         CornerRadius = new CornerRadius(12); Padding = new Thickness(8, 2, 8, 2);
         Margin = new Thickness(18, 0, 0, 0);
         var colon = Text(":", 24, Green, true); colon.Margin = new Thickness(7, 0, 7, 0);
@@ -35,7 +35,7 @@ public sealed class TimeWheel : Border
             ToolTip = "滚动鼠标滚轮或上下拖动；也可使用 ↑ ↓ / Home / End";
             previous = Text("", 14, Muted); selected = Text("", 24, Green, true); next = Text("", 14, Muted);
             foreach (var text in new[] { previous, selected, next }) text.HorizontalAlignment = HorizontalAlignment.Center;
-            Child = Stack(new Border { Height = 29, Child = previous }, new Border { Height = 38, CornerRadius = new CornerRadius(8), Background = Brush("#EAF3ED"), Child = selected }, new Border { Height = 29, Child = next });
+            Child = Stack(new Border { Height = 29, Child = previous }, new Border { Height = 38, CornerRadius = new CornerRadius(8), Background = GlassTheme.Selection().Background, BorderBrush = GlassTheme.Edge, BorderThickness = new Thickness(1), Child = selected }, new Border { Height = 29, Child = next });
             Set(value);
             PreviewMouseWheel += (_, e) => { Step(e.Delta > 0 ? -1 : 1); e.Handled = true; };
             KeyDown += (_, e) => { if (e.Key == Key.Up) Step(-1); else if (e.Key == Key.Down) Step(1); else if (e.Key == Key.Home) Set(0); else if (e.Key == Key.End) Set(count - 1); else return; e.Handled = true; };

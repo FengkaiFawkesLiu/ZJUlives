@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -41,6 +41,7 @@ public static class Program
         try
         {
             Theme.Install(app);
+            if(args.Contains("--theme-ui-test")) return GlassControlsTests.Run(app,args[^1]);
             var store = new Store(root);
             if (!preview) { PeriodSchedule.Migrate(store); NotesModel.Migrate(store); }
             if (preview && !uiTest) Tests.Seed(store);
@@ -104,7 +105,7 @@ public static class Theme
         bitmap.Render(drawing); var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using var fs = File.Create(path); encoder.Save(fs);
     }
-    public static Brush Ink = Brush("#223B36"), Muted = Brush("#798680"), Green = Brush("#28725B"), Cream = Brush("#F5F6F2"), Line = Brush("#E4E9E2");
+    public static Brush Ink = Brush("#183D3B"), Muted = Brush("#456764"), Green = Brush("#216F6B"), Cream = Brush("#F5FCFB"), Line = Brush("#D3EBE8");
     public static Brush Brush(string hex) => new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
     public static Brush Kind(string kind) => Brush(kind switch { "课程" => "#357F68", "考试" => "#B86E34", "待办" => "#517CA4", "笔记" => "#8A719F", _ => "#7463A5" });
     public static Brush Tint(string kind) => Brush(kind switch { "课程" => "#EAF3ED", "考试" => "#FFF1DF", "待办" => "#ECF2F8", "笔记" => "#F3EEF6", _ => "#F0EDF8" });
@@ -112,24 +113,24 @@ public static class Theme
     {
         app.Resources = (ResourceDictionary)XamlReader.Parse("""
         <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-          <Style TargetType="Window"><Setter Property="FontFamily" Value="Microsoft YaHei UI"/><Setter Property="FontSize" Value="13"/><Setter Property="Foreground" Value="#223B36"/><Setter Property="Background" Value="{DynamicResource Glass.Backdrop}"/></Style>
+          <Style TargetType="Window"><Setter Property="FontFamily" Value="Microsoft YaHei UI"/><Setter Property="FontSize" Value="13"/><Setter Property="Foreground" Value="#183D3B"/><Setter Property="Background" Value="{DynamicResource Glass.Backdrop}"/></Style>
           <Style TargetType="Button">
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="Foreground" Value="#284F43"/><Setter Property="BorderBrush" Value="#E2E8E1"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="14,9"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Margin" Value="0,0,8,0"/>
-            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Opacity" Value="0.78"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.4"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="#4B997A"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+            <Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="Foreground" Value="#183D3B"/><Setter Property="BorderBrush" Value="#D3EBE8"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="14,9"/><Setter Property="Cursor" Value="Hand"/><Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bd" Property="Opacity" Value="0.78"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="bd" Property="Opacity" Value="0.4"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="bd" Property="BorderBrush" Value="#398C86"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
           </Style>
-          <Style TargetType="TextBox"><Setter Property="Padding" Value="10,8"/><Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="BorderBrush" Value="#DCE4DD"/><Setter Property="BorderThickness" Value="1"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="MinHeight" Value="36"/><Setter Property="SelectionBrush" Value="#90BDA6"/>
-            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TextBox"><Border x:Name="frame" CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"><ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/></Border><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="frame" Property="BorderBrush" Value="#28725B"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="frame" Property="Opacity" Value="0.5"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-          <Style TargetType="ComboBox"><Setter Property="Padding" Value="12,8"/><Setter Property="MinHeight" Value="42"/><Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="BorderBrush" Value="#DCE4DD"/><Setter Property="VerticalContentAlignment" Value="Center"/>
+          <Style TargetType="TextBox"><Setter Property="Padding" Value="10,8"/><Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="BorderBrush" Value="#D3EBE8"/><Setter Property="BorderThickness" Value="1"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="MinHeight" Value="36"/><Setter Property="SelectionBrush" Value="#87E2DA"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TextBox"><Border x:Name="frame" CornerRadius="8" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"><ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/></Border><ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="frame" Property="BorderBrush" Value="#216F6B"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter TargetName="frame" Property="Opacity" Value="0.5"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
+          <Style TargetType="ComboBox"><Setter Property="Padding" Value="12,8"/><Setter Property="MinHeight" Value="42"/><Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="BorderBrush" Value="#D3EBE8"/><Setter Property="VerticalContentAlignment" Value="Center"/>
           <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBox"><Grid>
           <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8"/>
           <ContentPresenter Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Margin="12,6,35,6" VerticalAlignment="Center" IsHitTestVisible="False"/>
-          <TextBlock Text="⌄" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="#28725B"/>
+          <TextBlock Text="⌄" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" Foreground="#216F6B"/>
           <ToggleButton Focusable="False" IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"><ToggleButton.Template><ControlTemplate TargetType="ToggleButton"><Border Background="Transparent"/></ControlTemplate></ToggleButton.Template></ToggleButton>
-          <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide"><Border Background="White" BorderBrush="#DCE4DD" BorderThickness="1" CornerRadius="8" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="300" Padding="4"><ScrollViewer><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border></Popup>
+          <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide"><Border Background="White" BorderBrush="#D3EBE8" BorderThickness="1" CornerRadius="8" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="300" Padding="4"><ScrollViewer><ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/></ScrollViewer></Border></Popup>
           </Grid><ControlTemplate.Triggers><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
           <Style TargetType="ComboBoxItem"><Setter Property="Padding" Value="12,9"/><Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ComboBoxItem"><Border x:Name="item" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}"><ContentPresenter/></Border><ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="item" Property="Background" Value="#EAF3ED"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter></Style>
-          <Style TargetType="DatePicker"><Setter Property="FontSize" Value="16"/><Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="BorderBrush" Value="#DCE4DD"/><Setter Property="Padding" Value="10"/><Setter Property="MinHeight" Value="54"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+          <Style TargetType="DatePicker"><Setter Property="FontSize" Value="16"/><Setter Property="Background" Value="{DynamicResource Glass.Input}"/><Setter Property="BorderBrush" Value="#D3EBE8"/><Setter Property="Padding" Value="10"/><Setter Property="MinHeight" Value="54"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
           <Style TargetType="Calendar"><Setter Property="FontSize" Value="15"/><Setter Property="LayoutTransform"><Setter.Value><ScaleTransform ScaleX="1.3" ScaleY="1.3"/></Setter.Value></Setter></Style>
           <Style TargetType="CheckBox"><Setter Property="Margin" Value="0,8,0,8"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
           <Style TargetType="ScrollViewer"><Setter Property="VerticalScrollBarVisibility" Value="Auto"/><Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/></Style>
@@ -141,8 +142,13 @@ public static class Theme
     public static Button Button(string label, Action action, bool primary = false)
     {
         var b = new Button { Content = label, HorizontalContentAlignment = HorizontalAlignment.Center };
-        if (primary) { b.Background = Green; b.Foreground = Brushes.White; b.BorderBrush = Green; }
+        if (primary) { b.Background = GlassTheme.Accent; b.Foreground = Ink; b.BorderBrush = Brush("#B0FFFFFF"); }
+        if(primary || label.StartsWith("删除") || label.StartsWith("退出") || label.StartsWith("清除") || label.StartsWith("断开")) GlassHover.SetIsSubtle(b,true);
         Motion.Press(b); b.Click += (_, _) => action(); return b;
+    }
+    public static Button TabButton(string label, Action action, bool selected = false)
+    {
+        var button=Button(label,action,selected);GlassHover.SetIsExcluded(button,true);return button;
     }
     public static Border Card(UIElement child, string? bg = null, double padding = 20)
     {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -21,7 +21,7 @@ public sealed partial class MainWindow
     NoteLibrary CurrentLibrary => store.Data.NoteLibraries.FirstOrDefault(l => l.Id == noteLibraryId) ?? store.Data.NoteLibraries[0];
     void RenderNotes()
     {
-        var library = CurrentLibrary; noteLibraryId = library.Id; heading.Text = "知识笔记"; subtitle.Text = "把课堂、想法与生活连接起来 · 搜索当前库的笔记和关联内容";
+        var library = CurrentLibrary; noteLibraryId = library.Id; heading.Text = "知识笔记";
         var dock = new DockPanel(); body.Content = dock;
         var libraries = Combo(store.Data.NoteLibraries.Select(l => l.Name).ToArray(), library.Name); libraries.MinWidth = 145;
         libraries.SelectedIndex = store.Data.NoteLibraries.IndexOf(library);
@@ -144,7 +144,12 @@ public sealed partial class MainWindow
         var editorDock = new DockPanel(); grid.Children.Add(editorDock);
         var title = new TextBox { Text = draft.Title, FontFamily=new FontFamily("Microsoft YaHei UI"), Foreground=Ink, FontSize = 29, FontWeight = FontWeights.SemiBold, MaxLength = 300, Background = Brushes.Transparent, BorderThickness = new Thickness(0), FocusVisualStyle = null, Padding = new Thickness(0) };
         title.FontSize=19;
-        var titleColumn=new Border { Child=title,HorizontalAlignment=HorizontalAlignment.Left,Padding=new Thickness(12,8,12,8) };
+        title.MinHeight=40;title.MinWidth=220;title.Padding=new Thickness(10,6,10,6);
+        title.Background=Brush("#F0F4E9");title.BorderBrush=Brush("#A8BFAE");title.BorderThickness=new Thickness(1);
+        title.ToolTip="在这里填写笔记标题";
+        System.Windows.Automation.AutomationProperties.SetName(title,"笔记标题");
+        var titleLabel=Text("笔记标题",12,Ink);titleLabel.Margin=new Thickness(0,0,0,5);
+        var titleColumn=new Border { Child=Stack(titleLabel,title),HorizontalAlignment=HorizontalAlignment.Stretch,Padding=new Thickness(12,8,12,8) };
         var titleSurface=new Border { Background=NoteEditorUi.Paper,Child=titleColumn };
         INoteCodec codec = new RichNoteCodec();
         var editor = new RichTextBox { Background = NoteEditorUi.Paper, FocusVisualStyle = null, BorderThickness = new Thickness(0), SelectionBrush = Brush("#80A3BDA7"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, AcceptsTab = true };
@@ -216,6 +221,11 @@ public sealed partial class MainWindow
         var listFrame=new Border { Width=190,Padding=new Thickness(14),Background=Brush("#DFEBDD"),HorizontalAlignment=HorizontalAlignment.Left,VerticalAlignment=VerticalAlignment.Top,CornerRadius=new CornerRadius(16),Child=noteList,Visibility=Visibility.Collapsed,Margin=new Thickness(6) };Panel.SetZIndex(listFrame,11);grid.Children.Add(listFrame);
         var listButton=NoteEditorUi.Action("笔记列表",()=>NoteEditorUi.Toggle(listFrame));DockPanel.SetDock(listButton,Dock.Right);actions.Children.Add(listButton);
         var links = new StackPanel(); var files = new StackPanel(); var staged = new Dictionary<Attachment, string>();
+        var parentNotes = store.Data.Items.Where(n => n.Kind == "笔记" && !n.Cancelled && n.LibraryId == library.Id && n.Id != draft.Id).ToList();
+        var parentChoice = Combo(new[] { "无（顶层笔记）" }.Concat(parentNotes.Select(n => n.Title)).ToArray(), "无（顶层笔记）");
+        parentChoice.SelectedIndex = parentNotes.FindIndex(n => n.Id == draft.ParentId) + 1;
+        side.Children.Add(Field("父节点", parentChoice));
+        parentChoice.SelectionChanged += (_, _) => { draft.ParentId = parentChoice.SelectedIndex <= 0 ? null : parentNotes[parentChoice.SelectedIndex - 1].Id; Mark(); };
         void Mark() { dirty = true; status.Text = "有未保存的修改 · Ctrl+S 保存"; }
         MarkdownEditor? markdownEditor = null;
         if (markdown) { editorDock.Children.Remove(toolSurface); editorDock.Children.Remove(editor); markdownEditor = new MarkdownEditor(draft.NoteBody, Mark); editorDock.Children.Add(markdownEditor); }
@@ -283,7 +293,8 @@ public sealed partial class MainWindow
                 if (current != null && current.Modified != openedModified) { UiMessage.Show(dialog, "笔记已在其他窗口更新，请先复制当前内容，关闭后重新打开，避免覆盖。"); return false; }
                 var updated = current?.Copy() ?? draft.Copy(); updated.Title = title.Text.Trim(); updated.Note = markdown ? MarkdownNotes.Plain(markdownEditor!.Source.Text) : codec.PlainText(editor.Document); updated.NoteBody = markdown ? markdownEditor!.Source.Text : codec.Encode(editor.Document); updated.NoteFormat = markdown ? MarkdownNotes.Format : codec.Format; updated.NoteInk = markdown ? draft.NoteInk : paper!.Encode(); updated.NoteLinks = draft.NoteLinks; updated.Modified = DateTime.Now;
                 foreach (var pair in staged.ToList()) { pair.Key.File = store.AddFile(pair.Value).File; staged.Remove(pair.Key); }
-                updated.Attachments = draft.Attachments;
+                updated.Attachments = draft.Attachments; updated.ParentId = draft.ParentId;                var ancestor = updated.ParentId; var ancestry = new HashSet<string> { updated.Id };
+                while (ancestor != null) { if (!ancestry.Add(ancestor)) { UiMessage.Show(dialog, "父节点不能是自己或自己的后代，请先调整层级。"); return false; } ancestor = store.Data.Items.FirstOrDefault(n => n.Id == ancestor)?.ParentId; }
                 if (!Commit(() => { if (current != null) store.Data.Items.Remove(current); store.Data.Items.Add(updated); NotesModel.SyncReciprocal(store.Data, updated); })) return false;
                 dirty = false; closing = true; dialog.Close(); return true;
             }
@@ -295,9 +306,14 @@ public sealed partial class MainWindow
         {
             if (UiMessage.Show(dialog, "删除这篇笔记及其关联连线？其他笔记和课程将保留。", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes) return;
             if (Commit(() => { store.Data.Items.RemoveAll(i => i.Id == draft.Id); foreach (var n in store.Data.Items) { n.NoteLinks.RemoveAll(l => l.Key == "note:" + draft.Id); if (n.ParentId == draft.Id) n.ParentId = null; } library.Positions.Remove("note:" + draft.Id); })) { closing = true; dialog.Close(); }
-        }); extraTools.Children.Add(delete); }
-        var breadcrumb=NoteEditorUi.Action("学习记录",()=>dialog.Close());breadcrumb.Foreground=Muted;breadcrumb.HorizontalContentAlignment=HorizontalAlignment.Left;actions.Children.Add(breadcrumb);
-        var footer=Row(status,Text("   Ctrl + S 保存",11,Muted));footer.HorizontalAlignment=HorizontalAlignment.Right;
+        }); delete.Foreground=Brush("#A45248"); delete.Background=Brushes.Transparent; delete.BorderThickness=new Thickness(0); delete.Padding=new Thickness(12,8,12,8); delete.Margin=new Thickness(6,0,0,0); DockPanel.SetDock(delete,Dock.Right); actions.Children.Insert(1,delete); }
+        var breadcrumb=NoteEditorUi.Action("学习记录",()=>dialog.Close());breadcrumb.Foreground=Muted;breadcrumb.HorizontalContentAlignment=HorizontalAlignment.Left;actions.Children.Add(breadcrumb);        dock.Children.Remove(actions);
+        var actionGlass = new GlassSelectionLayer(actions, 10);
+        DockPanel.SetDock(actionGlass, Dock.Top); dock.Children.Insert(0, actionGlass);
+        foreach (UIElement child in actions.Children) if (child is Button actionButton)
+            actionButton.MouseEnter += (_, _) => actionGlass.Select(actionButton);
+        actions.MouseLeave += (_, _) => actionGlass.Select(null);
+        var saveHint=Text("   Ctrl + S 保存",11,Muted); var footer=Row(status,saveHint); HoverHint(dock,saveHint);footer.HorizontalAlignment=HorizontalAlignment.Right;
         var footSurface=new Border { Background=NoteEditorUi.Paper,Padding=new Thickness(16,12,22,12),Child=footer };DockPanel.SetDock(footSurface,Dock.Bottom);editorDock.Children.Insert(0,footSurface);
         title.TextChanged += (_, _) => Mark(); editor.TextChanged += (_, _) => Mark();
         dialog.PreviewKeyDown += (_, e) => { if (e.Key == Key.M && Keyboard.Modifiers == ModifierKeys.Control) { if (markdown) markdownEditor!.Insert("\n$$\n", "\n$$\n", @"\frac{a}{b}"); else EditFormula(dialog, editor); e.Handled = true; }

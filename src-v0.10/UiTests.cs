@@ -44,6 +44,8 @@ public sealed partial class MainWindow
         void Click(FrameworkElement window, string label) => Visuals<Button>(window).First(b => b.Content is string s && s == label).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         try
         {
+            if (Environment.GetCommandLineArgs().Contains("--hover-only")) { RunHoverUiTests(dir,Check); return; }
+            if (Environment.GetCommandLineArgs().Contains("--classroom-only")) { RunClassroomUiTests(dir,Check,Modal); return; }
             if (Environment.GetCommandLineArgs().Contains("--note-toolbar-only")) { RunNoteToolbarTests(dir,Check,Modal); return; }
             if (Environment.GetCommandLineArgs().Contains("--graph-glass-only")) { RunGraphGlassTests(dir,Check); return; }
             if (Environment.GetCommandLineArgs().Contains("--note-focus-only")) { RunNoteFocusTests(dir,Check,Modal,Click); return; }
