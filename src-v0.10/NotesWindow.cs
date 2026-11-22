@@ -218,7 +218,7 @@ public sealed partial class MainWindow
         var links = new StackPanel(); var files = new StackPanel(); var staged = new Dictionary<Attachment, string>();
         void Mark() { dirty = true; status.Text = "有未保存的修改 · Ctrl+S 保存"; }
         MarkdownEditor? markdownEditor = null;
-        if (markdown) { editorDock.Children.Remove(toolSurface); editorDock.Children.Remove(editor); markdownEditor = new MarkdownEditor(draft.NoteBody, Mark); editorDock.Children.Add(markdownEditor); }
+        if (markdown) { editorDock.Children.Remove(toolSurface); editorDock.Children.Remove(editor); markdownEditor = new MarkdownEditor(draft.NoteBody, Mark, ResolveImage, PickImage); editorDock.Children.Add(markdownEditor); }
         else
         {
             editorDock.Children.Remove(editor);
@@ -259,11 +259,32 @@ public sealed partial class MainWindow
         foreach (var back in backlinks) side.Children.Add(Button(back.Title, () => EditKnowledgeNote(back)));
         if (backlinks.Count == 0) side.Children.Add(Text("尚无其他关联笔记", 12, Muted));
         side.Children.Add(Space(24)); side.Children.Add(Text("本地附件", 17, bold: true)); side.Children.Add(Space(10)); side.Children.Add(files);
+        string? PickImage()
+        {
+            var picker = new OpenFileDialog { Filter = "图片|*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.tif;*.tiff" };
+            if (picker.ShowDialog(this) != true) return null;
+            string name = Path.GetFileName(picker.FileName);
+            if (draft.Attachments.Any(a => a.Name == name)) name = Guid.NewGuid().ToString("N") + "-" + name;
+            var attachment = new Attachment { Name = name };
+            draft.Attachments.Add(attachment);
+            staged[attachment] = picker.FileName;
+            Mark();
+            DrawFiles();
+            return "attachment:" + Uri.EscapeDataString(name);
+        }
+        string? ResolveImage(string url)
+        {
+            string name = Uri.UnescapeDataString(url.StartsWith("attachment:", StringComparison.Ordinal) ? url.Substring(11) : url);
+            var attachment = draft.Attachments.FirstOrDefault(a => a.Name == name);
+            if (attachment == null) return null;
+            if (staged.TryGetValue(attachment, out var local)) return local;
+            return Path.GetFileName(attachment.File) == attachment.File ? Path.Combine(store.Files, attachment.File) : null;
+        }
         void DrawFiles()
         {
             files.Children.Clear(); foreach (var a in draft.Attachments.ToList())
             {
-                var row = new DockPanel(); var remove = Button("×", () => { draft.Attachments.Remove(a); staged.Remove(a); Mark(); DrawFiles(); }); remove.Padding = new Thickness(7, 2, 7, 2); DockPanel.SetDock(remove, Dock.Right); row.Children.Add(remove);
+                var row = new DockPanel(); var remove = Button("×", () => { draft.Attachments.Remove(a); staged.Remove(a); Mark(); DrawFiles(); markdownEditor?.Refresh(); }); remove.Padding = new Thickness(7, 2, 7, 2); DockPanel.SetDock(remove, Dock.Right); row.Children.Add(remove);
                 var open = Button(a.Name, () =>
                 {
                     string path = staged.TryGetValue(a, out var local) ? local : Path.Combine(store.Files, a.File);
@@ -300,7 +321,7 @@ public sealed partial class MainWindow
         var footer=Row(status,Text("   Ctrl + S 保存",11,Muted));footer.HorizontalAlignment=HorizontalAlignment.Right;
         var footSurface=new Border { Background=NoteEditorUi.Paper,Padding=new Thickness(16,12,22,12),Child=footer };DockPanel.SetDock(footSurface,Dock.Bottom);editorDock.Children.Insert(0,footSurface);
         title.TextChanged += (_, _) => Mark(); editor.TextChanged += (_, _) => Mark();
-        dialog.PreviewKeyDown += (_, e) => { if (e.Key == Key.M && Keyboard.Modifiers == ModifierKeys.Control) { if (markdown) markdownEditor!.Insert("\n$$\n", "\n$$\n", @"\frac{a}{b}"); else EditFormula(dialog, editor); e.Handled = true; }
+        dialog.PreviewKeyDown += (_, e) => { if (e.Key == Key.M && Keyboard.Modifiers == ModifierKeys.Control) { if (markdown) markdownEditor!.OpenFormulaMenu(); else EditFormula(dialog, editor); e.Handled = true; }
             if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control) { Save(); e.Handled = true; } };
         dialog.Closing += (_, e) =>
         {
