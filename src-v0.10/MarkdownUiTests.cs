@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -16,7 +16,7 @@ public sealed partial class MainWindow
             var control = Visuals<MarkdownEditor>(window).Single(); control.Source.Text = source; control.Refresh(); window.UpdateLayout();
             check(control.Preview.Document.Blocks.OfType<Table>().Any(), "Markdown table renders natively");
             check(control.Preview.Document.Blocks.OfType<BlockUIContainer>().Any(), "Markdown LaTeX renders offline");
-            check(new TextRange(control.Preview.Document.ContentStart, control.Preview.Document.ContentEnd).Text.Contains("☑"), "Markdown checked tasks render");
+            check(control.Preview.Document.Blocks.OfType<List>().SelectMany(list => list.ListItems).SelectMany(item => item.Blocks.OfType<Paragraph>()).SelectMany(p => p.Inlines.OfType<InlineUIContainer>()).Any(ui => ui.Child is CheckBox { IsChecked: true }), "Markdown checked tasks render");
             Theme.Screenshot((FrameworkElement)window.Content, Path.Combine(dir,"Markdown编辑预览.png")); click(window,"保存");
         });
         var note = store.Data.Items.Single(i => i.Title == "Markdown 集成测试");
